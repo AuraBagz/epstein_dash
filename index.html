@@ -120,10 +120,6 @@ canvas { display: block; }
 /* Chase canvas for start screen — positioned inside overlay */
 #start-chase-canvas {
   position: absolute;
-  top: 3%;
-  left: 3%;
-  width: 94%;
-  height: 90%;
   z-index: 1;
   pointer-events: none;
 }
@@ -365,9 +361,9 @@ canvas { display: block; }
 
 <div id="start-screen">
   <img src="start_screen.png" alt="The Dor Brothers" id="startscreen-img">
+  <canvas id="start-chase-canvas"></canvas>
   <div id="startscreen-overlay">
     <div id="epstein-dash-title">EPSTEIN DASH</div>
-    <canvas id="start-chase-canvas"></canvas>
     <div id="start-controls-hint">
       Arrow Keys / WASD to move &bull; Space to jump &bull; Swipe on mobile
     </div>
@@ -596,8 +592,12 @@ musicToggleBtn.addEventListener('click', (e) => {
   musicToggleBtn.innerHTML = musicEnabled ? '&#x1F50A;' : '&#x1F507;';
   if (musicEnabled) {
     if (state && state.running) playBgMusic();
+    else if (window._introAudio && !document.getElementById('start-screen').classList.contains('hidden')) {
+      window._introAudio.play().catch(() => {});
+    }
   } else {
     bgMusic.pause();
+    if (window._introAudio) window._introAudio.pause();
   }
   musicToggleBtn.blur(); // prevent spacebar from re-triggering
 });
@@ -2771,6 +2771,7 @@ function update() {
 (function sizeStartOverlay() {
   const img = document.getElementById('startscreen-img');
   const overlay = document.getElementById('startscreen-overlay');
+  const chaseCanvas = document.getElementById('start-chase-canvas');
   if (!img || !overlay) return;
 
   function fitOverlay() {
@@ -2780,13 +2781,11 @@ function update() {
     const containerRatio = cw / ch;
     let w, h, l, t;
     if (containerRatio > imgRatio) {
-      // letterboxed left/right
       h = ch;
       w = ch * imgRatio;
       l = (cw - w) / 2;
       t = 0;
     } else {
-      // letterboxed top/bottom
       w = cw;
       h = cw / imgRatio;
       l = 0;
@@ -2796,6 +2795,12 @@ function update() {
     overlay.style.height = h + 'px';
     overlay.style.left = l + 'px';
     overlay.style.top = t + 'px';
+    if (chaseCanvas) {
+      chaseCanvas.style.width = w + 'px';
+      chaseCanvas.style.height = h + 'px';
+      chaseCanvas.style.left = l + 'px';
+      chaseCanvas.style.top = t + 'px';
+    }
   }
   if (img.complete) fitOverlay();
   img.addEventListener('load', fitOverlay);
@@ -2811,14 +2816,14 @@ function update() {
   const ctx = canvas.getContext('2d');
 
   function resize() {
-    const overlay = document.getElementById('startscreen-overlay');
-    if (!overlay) return;
-    const rect = overlay.getBoundingClientRect();
-    canvas.width = rect.width * 0.94;
-    canvas.height = rect.height * 0.90;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return;
+    canvas.width = rect.width;
+    canvas.height = rect.height;
   }
-  resize();
-  window.addEventListener('resize', resize);
+  // Delay initial resize to let fitOverlay set CSS dimensions first
+  setTimeout(resize, 100);
+  window.addEventListener('resize', () => { setTimeout(resize, 50); });
 
   // State: positions stored as fractions (0-1) of canvas size
   let dir = 1;
@@ -2838,7 +2843,7 @@ function update() {
   function pickRun() {
     dir = Math.random() > 0.5 ? 1 : -1;
     speedFrac = 0.003 + Math.random() * 0.002;
-    charFracY = 0.25 + Math.random() * 0.5;
+    charFracY = 0.45 + Math.random() * 0.35;
     trumpFracX = dir === 1 ? -0.1 : 1.1;
   }
   pickRun();
@@ -3310,6 +3315,31 @@ function update() {
   origStartBtn.addEventListener('click', () => {
     if (chaseAnimId) cancelAnimationFrame(chaseAnimId);
   }, { once: true });
+
+  // Intro music — plays only on start screen
+  const introAudio = new Audio('intro.mp3');
+  introAudio.loop = true;
+  introAudio.volume = 0.5;
+  window._introAudio = introAudio;
+
+  // Try autoplay; if blocked, start on first interaction
+  introAudio.play().catch(() => {});
+  let introUnlocked = false;
+  const unlockIntro = (e) => {
+    if (introUnlocked) return;
+    // Don't restart if user clicked the mute button
+    if (e && e.target && e.target.closest('#music-toggle')) return;
+    if (musicEnabled && introAudio.paused && !document.getElementById('start-screen').classList.contains('hidden')) {
+      introAudio.play().catch(() => {});
+    }
+    introUnlocked = true;
+    document.removeEventListener('click', unlockIntro);
+    document.removeEventListener('touchstart', unlockIntro);
+    document.removeEventListener('keydown', unlockIntro);
+  };
+  document.addEventListener('click', unlockIntro);
+  document.addEventListener('touchstart', unlockIntro);
+  document.addEventListener('keydown', unlockIntro);
 })();
 
 // ─────────────────────────────────────────────
@@ -3354,6 +3384,14 @@ document.getElementById('start-btn').addEventListener('click', function startBtn
     btn.classList.add('btn-release');
     setTimeout(() => {
       btn.classList.remove('btn-release');
+      // Fade out and stop intro music
+      if (window._introAudio) {
+        const ia = window._introAudio;
+        const fadeOut = setInterval(() => {
+          if (ia.volume > 0.05) { ia.volume -= 0.05; }
+          else { ia.pause(); ia.currentTime = 0; clearInterval(fadeOut); }
+        }, 50);
+      }
       initAudio();
       playBgMusic();
       state.running = true;
