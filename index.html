@@ -29,19 +29,174 @@ canvas { display: block; }
   align-items: center; justify-content: center;
   background: rgba(0,0,0,0.75); z-index: 20; color: #fff;
 }
+#game-over-screen {
+  background: #000;
+}
+#endscreen-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  animation: endscreenPulse 4s ease-in-out infinite, endscreenGlow 3s ease-in-out infinite alternate;
+}
+@keyframes endscreenPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.012); }
+}
+@keyframes endscreenGlow {
+  0% { filter: brightness(1) contrast(1); }
+  100% { filter: brightness(1.08) contrast(1.05); }
+}
+#game-over-screen::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none;
+  z-index: 1;
+  animation: vignetteFlicker 5s ease-in-out infinite alternate;
+}
+@keyframes vignetteFlicker {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.7; }
+}
+#endscreen-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+/* Pointing arrows flanking the website URL */
+#website-arrows {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 78%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+#website-arrows .arrow {
+  font-size: 4vw;
+  color: #ffd700;
+  text-shadow: none;
+  animation: arrowBounce 1s ease-in-out infinite;
+  filter: none;
+}
+#website-arrows .arrow-left {
+  animation-name: arrowBounceLeft;
+}
+#website-arrows .arrow-right {
+  animation-name: arrowBounceRight;
+}
+@keyframes arrowBounceLeft {
+  0%, 100% { transform: translateX(0); opacity: 0.7; }
+  50% { transform: translateX(-8px); opacity: 1; }
+}
+@keyframes arrowBounceRight {
+  0%, 100% { transform: translateX(0); opacity: 0.7; }
+  50% { transform: translateX(8px); opacity: 1; }
+}
+#endscreen-website-link {
+  display: block;
+  font-size: 1px;
+  color: transparent;
+  text-decoration: none;
+  pointer-events: auto;
+  cursor: pointer;
+  position: absolute;
+  top: 30%;
+  left: 15%;
+  width: 70%;
+  height: 12%;
+  z-index: 3;
+  background: transparent;
+  border: none; outline: none;
+}
+#restart-btn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 1px;
+  color: transparent;
+  background: transparent;
+  border: none; outline: none;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 5;
+  border-radius: 0;
+  padding: 0;
+}
+#restart-btn:hover, #endscreen-website-link:hover {
+  background: transparent !important;
+}
+#restart-btn:active {
+  opacity: 0.7;
+}
+/* Snake line animation around Run Again */
+#restart-snake-border {
+  position: absolute;
+  bottom: 2.8%;
+  left: 37%;
+  width: 26%;
+  height: 10%;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+#restart-snake-border::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,215,0,0.0) 20%,
+    rgba(255,215,0,0.4) 40%,
+    rgba(255,255,255,0.6) 50%,
+    rgba(255,215,0,0.4) 60%,
+    rgba(255,215,0,0.0) 80%,
+    transparent 100%
+  );
+  animation: shineSwipe 2.5s ease-in-out infinite;
+}
+@keyframes shineSwipe {
+  0%   { left: -100%; }
+  100% { left: 200%; }
+}
+#endscreen-stats {
+  display: none;
+}
+/* Red police siren glow - positioned relative to endscreen-overlay (tracks image) */
+#endscreen-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 22% 8%, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0.15) 15%, transparent 35%),
+    radial-gradient(circle at 78% 8%, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0.15) 15%, transparent 35%);
+  pointer-events: none;
+  z-index: 1;
+  animation: sirenGlow 1.2s ease-in-out infinite;
+}
+@keyframes sirenGlow {
+  0%   { opacity: 0.2; }
+  15%  { opacity: 1; }
+  40%  { opacity: 0.1; }
+  55%  { opacity: 0.9; }
+  75%  { opacity: 0.1; }
+  100% { opacity: 0.2; }
+}
 #start-screen h1 {
   font-size: 64px; font-weight: 900; margin-bottom: 10px;
   background: linear-gradient(135deg, #ffd700, #ff6b35);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
-#start-screen p, #game-over-screen p {
+#start-screen p {
   font-size: 20px; color: #ccc; margin-bottom: 30px;
-}
-#game-over-screen h2 {
-  font-size: 48px; font-weight: 900; color: #ff4444; margin-bottom: 10px;
-}
-#game-over-screen .final-score {
-  font-size: 36px; color: #ffd700; margin-bottom: 10px;
 }
 .btn {
   padding: 16px 48px; font-size: 22px; font-weight: 700;
@@ -51,16 +206,6 @@ canvas { display: block; }
   transition: transform 0.15s;
 }
 .btn:hover { transform: scale(1.05); }
-#brand-link {
-  display: block; margin-bottom: 20px; font-size: 28px; font-weight: 900;
-  color: #ff4444; text-decoration: none; pointer-events: auto;
-  text-shadow: 0 0 15px rgba(255,0,0,0.6);
-  transition: color 0.2s, text-shadow 0.2s;
-}
-#brand-link:hover {
-  color: #ff6666;
-  text-shadow: 0 0 25px rgba(255,0,0,0.9);
-}
 .controls-hint {
   margin-top: 20px; font-size: 14px; color: #888;
 }
@@ -137,11 +282,19 @@ canvas { display: block; }
 </div>
 
 <div id="game-over-screen" class="hidden">
-  <h2>CAUGHT!</h2>
-  <div class="final-score">Epstein Files: <span id="final-score">0</span></div>
-  <p>Distance: <span id="final-distance">0</span>m</p>
-  <a href="https://www.thedorbrothers.com/" target="_blank" rel="noopener" id="brand-link">TheDorBrothers.com</a>
-  <button class="btn" id="restart-btn">RUN AGAIN</button>
+  <img src="ENDSCREEN.jpeg" alt="BUSTED!" id="endscreen-img">
+  <div id="endscreen-overlay">
+    <div id="website-arrows">
+      <span class="arrow arrow-left">&#9658;&#9658;</span>
+      <span class="arrow arrow-right">&#9668;&#9668;</span>
+    </div>
+    <a href="https://www.thedorbrothers.com" target="_blank" rel="noopener" id="endscreen-website-link">www.THEDORBROTHERS.com</a>
+    <div id="restart-snake-border"><button class="btn" id="restart-btn">RUN AGAIN</button></div>
+  </div>
+  <div id="endscreen-stats">
+    <span>Epstein Files: <span id="final-score">0</span></span>
+    <span>Distance: <span id="final-distance">0</span>m</span>
+  </div>
 </div>
 
 <div id="combo-display">
@@ -2125,6 +2278,7 @@ function gameOver() {
   document.getElementById('final-score').textContent = state.score;
   document.getElementById('final-distance').textContent = Math.floor(state.distance);
   document.getElementById('game-over-screen').classList.remove('hidden');
+  updateEndscreenOverlay();
 }
 
 // ─────────────────────────────────────────────
@@ -2300,16 +2454,40 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   state.running = true;
 });
 
+// ─────────────────────────────────────────────
+// ENDSCREEN OVERLAY - track actual image bounds
+// ─────────────────────────────────────────────
+window.updateEndscreenOverlay = updateEndscreenOverlay;
+function updateEndscreenOverlay() {
+  const img = document.getElementById('endscreen-img');
+  const overlay = document.getElementById('endscreen-overlay');
+  const container = document.getElementById('game-over-screen');
+  if (!img || !overlay || !container) return;
+  // Calculate rendered image bounds with object-fit: contain
+  const cw = container.clientWidth, ch = container.clientHeight;
+  const iw = img.naturalWidth || 5504, ih = img.naturalHeight || 3072;
+  const scale = Math.min(cw / iw, ch / ih);
+  const rw = iw * scale, rh = ih * scale;
+  const offsetX = (cw - rw) / 2, offsetY = (ch - rh) / 2;
+  overlay.style.left = offsetX + 'px';
+  overlay.style.top = offsetY + 'px';
+  overlay.style.width = rw + 'px';
+  overlay.style.height = rh + 'px';
+}
+
 // Resize
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  updateEndscreenOverlay();
 });
 
 // Boot
 initWorld();
 update();
+
+// Shine effect is pure CSS now - no JS needed for Run Again highlight
 </script>
 </body>
 </html>
