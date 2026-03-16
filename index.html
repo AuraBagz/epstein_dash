@@ -592,8 +592,8 @@ const LEVEL2_DISTANCE = 500; // switch at 500m
 let levelTransitioned = false;
 
 // Ocean / island materials
-const sandMat = new THREE.MeshStandardMaterial({ color: 0xf4e4c1, roughness: 0.95 });
-const oceanMat = new THREE.MeshStandardMaterial({ color: 0x006994, roughness: 0.2, metalness: 0.3, transparent: true, opacity: 0.85, depthWrite: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+const sandMat = new THREE.MeshStandardMaterial({ color: 0xc4a46c, roughness: 0.95 });
+const oceanMat = new THREE.MeshStandardMaterial({ color: 0x006994, roughness: 0.2, metalness: 0.3 });
 const palmTrunkMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.9 });
 const palmLeafMat = new THREE.MeshStandardMaterial({ color: 0x228B22, side: THREE.DoubleSide });
 const boatWoodMat = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.7 });
@@ -740,32 +740,27 @@ function createZombie() {
   // Model faces -Z (toward player, away from camera)
   // So: front details at -Z, back (visible to camera) at +Z
 
-  // Zombified skin - pale grayish with slight green tint
-  const zombieSkin = new THREE.MeshStandardMaterial({ color: 0x9a9080 });
-  // Dark charcoal blazer
-  const blazerMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a });
-  // Light blue button-up shirt
-  const shirtMat = new THREE.MeshStandardMaterial({ color: 0x7ba4cc });
-  // Dark pants
-  const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+  // Zombified skin - sickly pale green-gray
+  const zombieSkin = new THREE.MeshStandardMaterial({ color: 0x8a9a78, roughness: 0.9 });
+  // Orange prison jumpsuit
+  const jumpsuitMat = new THREE.MeshStandardMaterial({ color: 0xff6a00, roughness: 0.8 });
+  const jumpsuitDark = new THREE.MeshStandardMaterial({ color: 0xe05500, roughness: 0.8 });
+  // Pants same orange
+  const pantsMat = jumpsuitMat;
 
-  // Body - dark blazer
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.2, 0.5), blazerMat);
+  // Body - orange jumpsuit torso
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.2, 0.5), jumpsuitMat);
   body.position.y = 1.4;
   body.castShadow = true;
   group.add(body);
 
-  // Light blue shirt visible under blazer (front = -Z side)
-  const shirtFront = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.85, 0.02), shirtMat);
-  shirtFront.position.set(0, 1.4, -0.26);
-  group.add(shirtFront);
-
-  // Blazer lapels (front -Z side)
-  const lapelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+  // Collar — darker orange V-neck collar
+  const collarMat = jumpsuitDark;
   for (let side of [-1, 1]) {
-    const lapel = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.6, 0.03), lapelMat);
-    lapel.position.set(side * 0.22, 1.55, -0.27);
-    group.add(lapel);
+    const collar = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.2, 0.03), collarMat);
+    collar.position.set(side * 0.12, 1.95, -0.26);
+    collar.rotation.z = side * 0.3;
+    group.add(collar);
   }
 
   // "EPSTEIN" text on the back (+Z side, visible to camera) - transparent background
@@ -774,21 +769,25 @@ function createZombie() {
   epCanvas.height = 128;
   const epCtx = epCanvas.getContext('2d');
   epCtx.clearRect(0, 0, 512, 128); // fully transparent
-  epCtx.fillStyle = '#cccccc';
-  epCtx.font = 'bold 64px Arial';
+  epCtx.fillStyle = '#ffffff';
+  epCtx.font = '900 96px Arial Black, Impact, sans-serif';
   epCtx.textAlign = 'center';
   epCtx.textBaseline = 'middle';
+  epCtx.strokeStyle = '#000000';
+  epCtx.lineWidth = 4;
+  epCtx.strokeText('EPSTEIN', 256, 64);
   epCtx.fillText('EPSTEIN', 256, 64);
   const epsteinTex = new THREE.CanvasTexture(epCanvas);
   const epsteinMat = new THREE.MeshStandardMaterial({ map: epsteinTex, transparent: true, depthWrite: false });
-  const epsteinSign = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.2), epsteinMat);
+  const epsteinSign = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.25), epsteinMat);
   epsteinSign.position.set(0, 1.6, 0.26);
   group.add(epsteinSign);
 
-  // Open collar (front -Z)
-  const collarShirt = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.03), shirtMat);
-  collarShirt.position.set(0, 2.0, -0.27);
-  group.add(collarShirt);
+  // Jumpsuit zipper line (front -Z)
+  const zipperMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+  const zipper = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.8, 0.02), zipperMat);
+  zipper.position.set(0, 1.5, -0.26);
+  group.add(zipper);
 
   // Head - zombified complexion (longer face)
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.33, 16, 16), zombieSkin);
@@ -803,28 +802,6 @@ function createZombie() {
   nose.position.set(0, 2.25, -0.32);
   group.add(nose);
 
-  // Gray wavy hair
-  const grayHairMat = new THREE.MeshStandardMaterial({ color: 0x999999 });
-  const hairTop = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.15, 0.5), grayHairMat);
-  hairTop.position.set(0, 2.55, 0.03);
-  group.add(hairTop);
-  const hairTop2 = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.45), grayHairMat);
-  hairTop2.position.set(0, 2.62, 0);
-  group.add(hairTop2);
-  for (let side of [-1, 1]) {
-    const sideHair = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 0.45), grayHairMat);
-    sideHair.position.set(side * 0.3, 2.38, 0.03);
-    group.add(sideHair);
-  }
-  // Back hair (+Z, visible to camera)
-  const backHair = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.3, 0.1), grayHairMat);
-  backHair.position.set(0, 2.42, 0.28);
-  group.add(backHair);
-  // Front hairline (-Z)
-  const frontHair = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.08, 0.1), grayHairMat);
-  frontHair.position.set(0, 2.52, -0.2);
-  group.add(frontHair);
-
   // Sunken glowing red eyes (front = -Z)
   const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1.0 });
   for (let side of [-1, 1]) {
@@ -837,6 +814,65 @@ function createZombie() {
     group.add(eye);
   }
 
+  // Glasses — small frames, arms visible from side
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2, metalness: 0.6 });
+  const lensMat = new THREE.MeshStandardMaterial({ color: 0x334455, transparent: true, opacity: 0.25, roughness: 0.1, metalness: 0.5 });
+  for (let side of [-1, 1]) {
+    // Small lens ring
+    const lensRing = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 8, 16), frameMat);
+    lensRing.position.set(side * 0.12, 2.35, -0.31);
+    group.add(lensRing);
+    // Lens glass
+    const lens = new THREE.Mesh(new THREE.CircleGeometry(0.045, 12), lensMat);
+    lens.position.set(side * 0.12, 2.35, -0.315);
+    group.add(lens);
+    // Temple arm — sits outside head at x=±0.32
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.018, 0.4), frameMat);
+    arm.position.set(side * 0.32, 2.36, -0.05);
+    group.add(arm);
+    // Ear hook
+    const hook = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.04, 0.015), frameMat);
+    hook.position.set(side * 0.32, 2.34, 0.14);
+    group.add(hook);
+  }
+  // Bridge
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.012, 0.012), frameMat);
+  bridge.position.set(0, 2.37, -0.32);
+  group.add(bridge);
+
+  // White/grey hair — full skull coverage, no bald spot
+  const hairWhite = new THREE.MeshStandardMaterial({ color: 0xd8d8d8, roughness: 0.85 });
+  const hairLightGrey = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, roughness: 0.85 });
+
+  // Blocky volumetric hair — BoxGeometry for chunky look, NO side hair (glasses visible)
+  // Top hair — main block sitting on top of head
+  const hairTop = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.15, 0.5), hairWhite);
+  hairTop.position.set(0, 2.6, 0.02);
+  group.add(hairTop);
+  // Second layer slightly offset for messy volume
+  const hairTop2 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.45), hairLightGrey);
+  hairTop2.position.set(0.03, 2.65, -0.02);
+  hairTop2.rotation.y = 0.15;
+  group.add(hairTop2);
+  // Third layer — front fringe hanging over forehead
+  const hairFringe = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.1, 0.12), hairWhite);
+  hairFringe.position.set(0, 2.56, -0.22);
+  hairFringe.rotation.x = 0.2;
+  group.add(hairFringe);
+
+  // Back hair blocks — chunky, visible from behind
+  const hairBack1 = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.2, 0.15), hairLightGrey);
+  hairBack1.position.set(0, 2.5, 0.22);
+  group.add(hairBack1);
+  const hairBack2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.12), hairWhite);
+  hairBack2.position.set(0.04, 2.42, 0.25);
+  hairBack2.rotation.y = -0.1;
+  group.add(hairBack2);
+  // Lower back — nape area
+  const hairNape = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.1, 0.1), hairLightGrey);
+  hairNape.position.set(0, 2.35, 0.27);
+  group.add(hairNape);
+
   // Grinning mouth (front = -Z)
   const mouthMat = new THREE.MeshStandardMaterial({ color: 0x220000 });
   const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.05, 0.06), mouthMat);
@@ -847,23 +883,119 @@ function createZombie() {
   teeth.position.set(0, 2.13, -0.32);
   group.add(teeth);
 
-  // Arms - reaching forward toward player (-Z direction)
-  for (let side of [-1, 1]) {
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.75, 0.22), blazerMat);
-    arm.position.set(side * 0.55, 1.5, -0.2);
-    arm.rotation.x = -1.2; // reaching toward -Z (toward player)
-    arm.castShadow = true;
-    arm.name = side === -1 ? 'zLeftArm' : 'zRightArm';
-    group.add(arm);
-    // Zombie hands
-    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.14, 0.18), zombieSkin);
-    hand.position.set(side * 0.55, 1.1, -0.65);
-    group.add(hand);
+  // Helper: create a thick oval chain link using TubeGeometry
+  function createChainLink(mat) {
+    // Oval path — wider and taller for visible interlocking
+    const hw = 0.035, hh = 0.055, cr = 0.025;
+    const pts = [];
+    const s = 6;
+    for (let i = 0; i <= s; i++) { const a = -Math.PI/2 + (Math.PI/2)*(i/s); pts.push(new THREE.Vector3(hw-cr+cr*Math.cos(a), hh-cr+cr*Math.sin(a), 0)); }
+    for (let i = 0; i <= s; i++) { const a = 0 + (Math.PI/2)*(i/s); pts.push(new THREE.Vector3(-hw+cr+cr*Math.cos(a), hh-cr+cr*Math.sin(a), 0)); }
+    for (let i = 0; i <= s; i++) { const a = Math.PI/2 + (Math.PI/2)*(i/s); pts.push(new THREE.Vector3(-hw+cr+cr*Math.cos(a), -hh+cr+cr*Math.sin(a), 0)); }
+    for (let i = 0; i <= s; i++) { const a = Math.PI + (Math.PI/2)*(i/s); pts.push(new THREE.Vector3(hw-cr+cr*Math.cos(a), -hh+cr+cr*Math.sin(a), 0)); }
+    const curve = new THREE.CatmullRomCurve3(pts, true);
+    // Thick tube for chunky metal look
+    const geo = new THREE.TubeGeometry(curve, 24, 0.014, 8, true);
+    return new THREE.Mesh(geo, mat);
   }
 
-  // Legs - dark pants
+  // Arms — proper parent-child hierarchy so everything moves together
+  const zombieHandMat = new THREE.MeshStandardMaterial({ color: 0x7a8070, roughness: 0.9 });
+  const cuffMat = new THREE.MeshStandardMaterial({ color: 0x777777, metalness: 0.9, roughness: 0.15 });
+  const chainMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.1 });
+
   for (let side of [-1, 1]) {
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.8, 0.28), pantsMat);
+    // ARM PIVOT at shoulder — rotation happens here, everything follows
+    const armPivot = new THREE.Group();
+    armPivot.position.set(side * 0.55, 1.92, -0.05);
+    armPivot.rotation.x = 1.4;
+    armPivot.name = side === -1 ? 'zLeftArm' : 'zRightArm';
+    group.add(armPivot);
+
+    // Upper arm mesh (hangs down from shoulder in local Y)
+    const upperArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.55, 0.22), jumpsuitMat);
+    upperArm.position.set(0, -0.28, 0);
+    upperArm.castShadow = true;
+    armPivot.add(upperArm);
+
+    // FOREARM PIVOT at elbow
+    const forearmPivot = new THREE.Group();
+    forearmPivot.position.set(0, -0.55, 0);
+    forearmPivot.rotation.x = 0.3;
+    forearmPivot.name = side === -1 ? 'zLeftForearm' : 'zRightForearm';
+    armPivot.add(forearmPivot);
+
+    // Forearm mesh — zombie skin
+    const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.45, 0.18), zombieHandMat);
+    forearm.position.set(0, -0.22, 0);
+    forearmPivot.add(forearm);
+
+    // Handcuff — wraps AROUND the wrist (forearm local Y axis)
+    // CylinderGeometry default: wraps around Y axis — perfect for forearm
+    const cuffBandGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.06, 12, 1, true);
+    const cuffBand = new THREE.Mesh(cuffBandGeo, cuffMat);
+    cuffBand.position.set(0, -0.42, 0);
+    // NO rotation — default cylinder already wraps around forearm Y axis
+    forearmPivot.add(cuffBand);
+    // Top/bottom rim rings (TorusGeometry default: lies in XZ plane around Y)
+    for (let ry of [-0.03, 0.03]) {
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.132, 0.01, 8, 14), cuffMat);
+      rim.position.set(0, -0.42 + ry, 0);
+      // No rotation needed — torus default already encircles Y axis
+      forearmPivot.add(rim);
+    }
+    // Lock box on outer side
+    const lockBox = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.07, 0.06), cuffMat);
+    lockBox.position.set(side * 0.1, -0.42, 0.08);
+    forearmPivot.add(lockBox);
+    // Keyhole
+    const keyhole = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.02, 6), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+    keyhole.position.set(side * 0.1, -0.42, 0.115);
+    keyhole.rotation.x = Math.PI / 2;
+    forearmPivot.add(keyhole);
+    // Wrist marker for chain positioning
+    const wristMarker = new THREE.Object3D();
+    wristMarker.position.set(0, -0.42, 0);
+    wristMarker.name = side === -1 ? 'zLeftWrist' : 'zRightWrist';
+    forearmPivot.add(wristMarker);
+
+    // Hand — open grabbing palm
+    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.15, 0.1), zombieHandMat);
+    hand.position.set(0, -0.52, 0);
+    hand.name = side === -1 ? 'zLeftHand' : 'zRightHand';
+    forearmPivot.add(hand);
+
+    // Clawed fingers — 4 bony fingers
+    for (let f = 0; f < 4; f++) {
+      const finger = new THREE.Mesh(
+        new THREE.BoxGeometry(0.03, 0.14, 0.03),
+        zombieHandMat
+      );
+      finger.position.set((f - 1.5) * 0.04, -0.65, 0);
+      finger.rotation.x = -0.2 + (f % 2) * 0.15;
+      forearmPivot.add(finger);
+    }
+
+    // Thumb
+    const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.09, 0.03), zombieHandMat);
+    thumb.position.set(side * 0.09, -0.52, 0.04);
+    thumb.rotation.z = side * -0.5;
+    forearmPivot.add(thumb);
+  }
+
+  // Chain connecting the two handcuffs — interlocking oval links
+  const chainGroup = new THREE.Group();
+  chainGroup.name = 'zChain';
+  const CHAIN_LINK_COUNT = 12; // more links, spaced tight to interlock
+  for (let i = 0; i < CHAIN_LINK_COUNT; i++) {
+    const link = createChainLink(chainMat);
+    chainGroup.add(link);
+  }
+  group.add(chainGroup);
+
+  // Legs - orange jumpsuit pants
+  for (let side of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.8, 0.28), jumpsuitMat);
     leg.position.set(side * 0.22, 0.4, 0);
     leg.castShadow = true;
     leg.name = side === -1 ? 'zLeftLeg' : 'zRightLeg';
@@ -888,17 +1020,82 @@ function animateZombie(zombie, time) {
   const rl = zombie.getObjectByName('zRightLeg');
   if (!la) return;
 
+  // Periodic grab lunge — every ~2.5s, one arm does a fast grab
+  const grabCycle = time % 2.5;
+  const isGrabbing = grabCycle < 0.4;
+  const grabSide = Math.floor(time / 2.5) % 2 === 0 ? 1 : -1;
+  const grabIntensity = isGrabbing ? Math.sin(grabCycle / 0.4 * Math.PI) : 0;
+
+  // Base shamble sway
   const lurch = Math.sin(time * 8) * 0.3;
-  la.rotation.x = -1.2 + lurch * 0.4;
-  ra.rotation.x = -1.2 - lurch * 0.4;
+
+  // Arm pivots — rotate from shoulder (base is 1.4 = arms forward toward player)
+  let laRot = 1.4 + lurch * 0.35;
+  let raRot = 1.4 - lurch * 0.35;
+  if (grabSide === -1) laRot += grabIntensity * 0.6;
+  else raRot += grabIntensity * 0.6;
+  la.rotation.x = laRot;
+  ra.rotation.x = raRot;
+
+  // Forearm pivots — child of arm, so rotation is relative
+  const lfa = zombie.getObjectByName('zLeftForearm');
+  const rfa = zombie.getObjectByName('zRightForearm');
+  if (lfa) {
+    lfa.rotation.x = 0.3 + Math.sin(time * 10) * 0.2 + (grabSide === -1 ? grabIntensity * 0.5 : 0);
+    rfa.rotation.x = 0.3 - Math.sin(time * 10) * 0.2 + (grabSide === 1 ? grabIntensity * 0.5 : 0);
+  }
+
+  // Hands — child of forearm, rotation is relative
+  const lh = zombie.getObjectByName('zLeftHand');
+  const rh = zombie.getObjectByName('zRightHand');
+  if (lh) {
+    lh.rotation.x = Math.sin(time * 12) * 0.25 + (grabSide === -1 ? grabIntensity * 0.6 : 0);
+    rh.rotation.x = -Math.sin(time * 12) * 0.25 + (grabSide === 1 ? grabIntensity * 0.6 : 0);
+  }
+
+  // Shambling legs
   ll.rotation.x = -lurch;
   rl.rotation.x = lurch;
 
-  // Head bob / tilt
+  // Head — tracks grab, lurches forward
   const head = zombie.getObjectByName('zHead');
   if (head) {
-    head.rotation.z = Math.sin(time * 5) * 0.15;
-    head.rotation.x = Math.sin(time * 3) * 0.1;
+    head.rotation.z = Math.sin(time * 5) * 0.18 + grabIntensity * grabSide * 0.15;
+    head.rotation.x = Math.sin(time * 3) * 0.12 - 0.1 - grabIntensity * 0.2;
+  }
+
+  // Update chain between wrists — links tightly spaced and interlocking
+  const lw = zombie.getObjectByName('zLeftWrist');
+  const rw = zombie.getObjectByName('zRightWrist');
+  const chain = zombie.getObjectByName('zChain');
+  if (lw && rw && chain) {
+    const lwPos = new THREE.Vector3();
+    const rwPos = new THREE.Vector3();
+    lw.getWorldPosition(lwPos);
+    rw.getWorldPosition(rwPos);
+    zombie.worldToLocal(lwPos);
+    zombie.worldToLocal(rwPos);
+    const dir = new THREE.Vector3().subVectors(rwPos, lwPos);
+    const dist = dir.length();
+    const norm = dir.clone().normalize();
+    // Direction angles for orienting links along the chain
+    const chainYaw = Math.atan2(norm.x, norm.z);
+    const links = chain.children;
+    for (let i = 0; i < links.length; i++) {
+      const t = links.length > 1 ? i / (links.length - 1) : 0.5;
+      // Catenary sag
+      const sag = Math.sin(t * Math.PI) * (0.1 + dist * 0.06);
+      const px = lwPos.x + dir.x * t;
+      const py = lwPos.y + dir.y * t - sag;
+      const pz = lwPos.z + dir.z * t;
+      links[i].position.set(px, py, pz);
+      // Both orientations vertical (visible from camera), 90° apart
+      if (i % 2 === 0) {
+        links[i].rotation.set(0, chainYaw, 0);
+      } else {
+        links[i].rotation.set(0, chainYaw + Math.PI / 2, 0);
+      }
+    }
   }
 }
 
@@ -1129,10 +1326,7 @@ function getTransitionT() {
 }
 
 function createLevelRoadSegment(zOffset) {
-  const t = getTransitionT();
-  if (t <= 0) return createRoadSegment(zOffset);
-  if (t >= 1) return createIslandRoadSegment(zOffset);
-  return createTransitionRoadSegment(zOffset);
+  return createIslandRoadSegment(zOffset);
 }
 
 function createTrumpTower(x, z, side) {
@@ -1380,41 +1574,73 @@ function createIslandRoadSegment(zOffset) {
   road.receiveShadow = true;
   seg.add(road);
 
-  // Road markings (faded)
-  const fadedLineMat = new THREE.MeshStandardMaterial({ color: 0xddddbb, roughness: 0.8 });
-  for (let i = -1; i <= 1; i += 2) {
-    for (let z = 0; z < ROAD_SEGMENT_LENGTH; z += 8) {
-      const line = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.15, 2.5),
-        fadedLineMat
-      );
-      line.rotation.x = -Math.PI / 2;
-      line.position.set(i * LANE_WIDTH, 0.02, -z);
-      seg.add(line);
+  // Small roadside rocks and bushes along edges
+  const sideRockMat = new THREE.MeshStandardMaterial({ color: 0x888877, roughness: 0.95 });
+  const bushMat = new THREE.MeshStandardMaterial({ color: 0x2d6b2d });
+  const darkBushMat = new THREE.MeshStandardMaterial({ color: 0x1a4a1a });
+  for (let side of [-1, 1]) {
+    for (let z = 0; z < ROAD_SEGMENT_LENGTH; z += 3 + Math.random() * 5) {
+      // Small rocks at road edge
+      if (Math.random() > 0.5) {
+        const rock = new THREE.Mesh(
+          new THREE.SphereGeometry(0.15 + Math.random() * 0.2, 5, 4),
+          sideRockMat
+        );
+        rock.scale.y = 0.4 + Math.random() * 0.3;
+        rock.position.set(side * (ROAD_WIDTH / 2 - 0.5 + Math.random() * 1.5), 0.08, -z);
+        seg.add(rock);
+      }
+      // Small bushes
+      if (Math.random() > 0.6) {
+        const bushGroup = new THREE.Group();
+        const puffCount = 2 + Math.floor(Math.random() * 3);
+        for (let p = 0; p < puffCount; p++) {
+          const puff = new THREE.Mesh(
+            new THREE.SphereGeometry(0.25 + Math.random() * 0.3, 6, 5),
+            Math.random() > 0.5 ? bushMat : darkBushMat
+          );
+          puff.position.set(
+            (Math.random() - 0.5) * 0.5,
+            0.2 + Math.random() * 0.15,
+            (Math.random() - 0.5) * 0.4
+          );
+          puff.scale.y = 0.6 + Math.random() * 0.3;
+          bushGroup.add(puff);
+        }
+        bushGroup.position.set(
+          side * (ROAD_WIDTH / 2 + 1 + Math.random() * 2),
+          0,
+          -z
+        );
+        seg.add(bushGroup);
+      }
     }
   }
 
-  // Ocean on both sides (wide enough to fill camera view, ABOVE ground plane)
-  for (let side of [-1, 1]) {
-    const ocean = new THREE.Mesh(
-      new THREE.PlaneGeometry(500, ROAD_SEGMENT_LENGTH + 200),
-      oceanMat
-    );
-    ocean.rotation.x = -Math.PI / 2;
-    ocean.position.set(side * (ROAD_WIDTH / 2 + 250), 0.0, -ROAD_SEGMENT_LENGTH / 2);
-    seg.add(ocean);
-  }
-
-  // Beach strip between road and ocean
+  // Beach strip next to road
+  const beachWidth = 12;
   const beachMat = new THREE.MeshStandardMaterial({ color: 0xf5deb3, roughness: 0.95 });
   for (let side of [-1, 1]) {
     const beach = new THREE.Mesh(
-      new THREE.PlaneGeometry(8, ROAD_SEGMENT_LENGTH),
+      new THREE.PlaneGeometry(beachWidth, ROAD_SEGMENT_LENGTH),
       beachMat
     );
     beach.rotation.x = -Math.PI / 2;
-    beach.position.set(side * (ROAD_WIDTH / 2 + 4), 0.02, -ROAD_SEGMENT_LENGTH / 2);
+    beach.position.set(side * (ROAD_WIDTH / 2 + beachWidth / 2), 0.005, -ROAD_SEGMENT_LENGTH / 2);
     seg.add(beach);
+  }
+
+  // Ocean starts RIGHT at beach outer edge - no overlap with road/beach
+  const oceanWidth = 500;
+  const beachOuterEdge = ROAD_WIDTH / 2 + beachWidth;
+  for (let side of [-1, 1]) {
+    const ocean = new THREE.Mesh(
+      new THREE.PlaneGeometry(oceanWidth, ROAD_SEGMENT_LENGTH + 200),
+      oceanMat
+    );
+    ocean.rotation.x = -Math.PI / 2;
+    ocean.position.set(side * (beachOuterEdge + oceanWidth / 2), -0.01, -ROAD_SEGMENT_LENGTH / 2);
+    seg.add(ocean);
   }
 
   seg.position.z = zOffset;
@@ -1463,37 +1689,7 @@ let oceanPlanes = [];
 let islandProps = [];
 
 function populateBuildingsForSegment(segZ) {
-  const t = getTransitionT();
-  if (t >= 1) {
-    return populateIslandForSegment(segZ);
-  }
-  if (t > 0) {
-    return populateTransitionForSegment(segZ);
-  }
-
-  const group = new THREE.Group();
-  const baseOffset = ROAD_WIDTH / 2 + 3;
-  let trumpPlaced = false;
-
-  for (let side of [-1, 1]) {
-    for (let z = 0; z < ROAD_SEGMENT_LENGTH; z += 8 + Math.random() * 4) {
-      // 15% chance of Trump Tower per building slot, max once per segment
-      if (!trumpPlaced && Math.random() < 0.15) {
-        const tt = createTrumpTower(side * baseOffset, segZ - z, side);
-        group.add(tt);
-        trumpPlaced = true;
-        z += 12; // skip space after tower
-        continue;
-      }
-      const b = createBuilding(
-        side * baseOffset,
-        segZ - z,
-        side
-      );
-      group.add(b);
-    }
-  }
-  return group;
+  return populateIslandForSegment(segZ);
 }
 
 // ─────────────────────────────────────────────
@@ -1886,14 +2082,74 @@ let nextDocumentZ = -15;
 let player;
 const playerBBox = new THREE.Box3();
 
-// Ground plane
-const groundGeo = new THREE.PlaneGeometry(2000, 2000);
-const groundMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-const ground = new THREE.Mesh(groundGeo, groundMat);
+// Sand fill plane - covers gaps behind player so sky/blue doesn't show through
+const groundFillGeo = new THREE.PlaneGeometry(3000, 3000);
+const groundFillMat = new THREE.MeshStandardMaterial({ color: 0xc4a46c, roughness: 0.95 });
+const ground = new THREE.Mesh(groundFillGeo, groundFillMat);
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = -0.1;
-ground.receiveShadow = true;
+ground.position.y = -0.02;
 scene.add(ground);
+
+// ─────────────────────────────────────────────
+// SUN & CLOUDS
+// ─────────────────────────────────────────────
+// Sun - large glowing sphere in the distance
+const sunGeo = new THREE.SphereGeometry(15, 32, 32);
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdd44 });
+const sun = new THREE.Mesh(sunGeo, sunMat);
+sun.position.set(-80, 60, -200);
+scene.add(sun);
+
+// Sun glow (larger transparent sphere)
+const sunGlowGeo = new THREE.SphereGeometry(25, 32, 32);
+const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xffeeaa, transparent: true, opacity: 0.2 });
+const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
+sunGlow.position.copy(sun.position);
+scene.add(sunGlow);
+
+// Sun halo ring
+const sunHaloGeo = new THREE.RingGeometry(18, 40, 32);
+const sunHaloMat = new THREE.MeshBasicMaterial({ color: 0xfff8dd, transparent: true, opacity: 0.1, side: THREE.DoubleSide });
+const sunHalo = new THREE.Mesh(sunHaloGeo, sunHaloMat);
+sunHalo.position.copy(sun.position);
+scene.add(sunHalo);
+
+// Clouds - fluffy groups of spheres
+const clouds = [];
+const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+
+function createCloud(x, y, z) {
+  const group = new THREE.Group();
+  const count = 4 + Math.floor(Math.random() * 4);
+  for (let i = 0; i < count; i++) {
+    const puffSize = 3 + Math.random() * 5;
+    const puff = new THREE.Mesh(
+      new THREE.SphereGeometry(puffSize, 8, 6),
+      cloudMat
+    );
+    puff.position.set(
+      (Math.random() - 0.5) * 12,
+      (Math.random() - 0.5) * 2,
+      (Math.random() - 0.5) * 4
+    );
+    puff.scale.y = 0.5 + Math.random() * 0.3;
+    group.add(puff);
+  }
+  group.position.set(x, y, z);
+  return group;
+}
+
+// Spawn initial clouds
+for (let i = 0; i < 15; i++) {
+  const cloud = createCloud(
+    (Math.random() - 0.5) * 400,
+    30 + Math.random() * 40,
+    -Math.random() * 300
+  );
+  cloud.userData.speed = 0.5 + Math.random() * 1.5;
+  scene.add(cloud);
+  clouds.push(cloud);
+}
 
 // ─────────────────────────────────────────────
 // INIT WORLD
@@ -1914,40 +2170,30 @@ function initWorld() {
   if (player) scene.remove(player);
 
   // Reset level and distance BEFORE creating segments
-  transitionProgress = 0;
+  transitionProgress = 1;
   state.distance = 0;
 
-  // Reset sky/fog/ground/lighting to city
+  // Island sky/fog/ground/lighting
   scene.background = new THREE.Color(0x87CEEB);
-  scene.fog = new THREE.Fog(0x87CEEB, 80, 250);
-  ground.material = groundMat;
-  ground.material.color.set(0x333333);
-  ground.visible = true;
-  ambientLight.color.set(0xffffff);
-  ambientLight.intensity = 0.6;
-  dirLight.color.set(0xffffff);
-  dirLight.intensity = 1.0;
+  scene.fog = new THREE.Fog(0x87CEEB, 120, 350);
+  // Ground stays invisible - ocean/beach planes cover the surface
+  ambientLight.color.set(0xfff8e7);
+  ambientLight.intensity = 0.9;
+  dirLight.color.set(0xfff4d6);
+  dirLight.intensity = 1.3;
 
-  // Road segments
-  for (let i = 0; i < SEGMENT_COUNT; i++) {
+  // Road segments (start two behind player to cover camera view)
+  for (let i = -2; i < SEGMENT_COUNT; i++) {
     const z = -i * ROAD_SEGMENT_LENGTH;
     const seg = createLevelRoadSegment(z);
     scene.add(seg);
     roadSegments.push(seg);
 
-    const buildings = populateBuildingsForSegment(z);
-    scene.add(buildings);
-    buildingGroups.push(buildings);
-
-    // Streetlights (city only at init)
-    if (transitionProgress === 0) {
-      for (let sz = 0; sz < ROAD_SEGMENT_LENGTH; sz += 25) {
-        for (let side of [-1, 1]) {
-          const sl = createStreetlight(side * (ROAD_WIDTH / 2 + 1), z - sz);
-          scene.add(sl);
-          streetlights.push(sl);
-        }
-      }
+    // Only populate scenery for forward segments (not behind player)
+    if (i >= 0) {
+      const buildings = populateBuildingsForSegment(z);
+      scene.add(buildings);
+      buildingGroups.push(buildings);
     }
   }
 
@@ -2011,7 +2257,8 @@ function spawnObstacles(playerZ) {
     }
 
     for (const lane of blockedLanes) {
-      const obs = (transitionProgress > 0.5)
+      // Mix island obstacles with cars
+      const obs = (Math.random() > 0.4)
         ? createIslandObstacle(lane, nextObstacleZ)
         : createObstacle(lane, nextObstacleZ);
       scene.add(obs);
@@ -2331,34 +2578,7 @@ function update() {
   const moveZ = state.speed * boostMultiplier * dt;
   state.distance += moveZ;
 
-  // Smooth environment transition based on distance (no forced segment swaps)
-  {
-    const t = getTransitionT();
-    transitionProgress = t;
-
-    // Smoothly blend ground color (city green -> ocean blue so ground beyond ocean looks like water)
-    const groundColor = new THREE.Color(0x333333).lerp(new THREE.Color(0x006994), t);
-    ground.material.color.copy(groundColor);
-
-    // Smoothly blend fog
-    const fogColor = new THREE.Color(0x87CEEB).lerp(new THREE.Color(0x87CEEB), t);
-    scene.fog.color.copy(fogColor);
-    scene.background.copy(fogColor);
-    scene.fog.near = 80 + t * 40;
-    scene.fog.far = 250 + t * 100;
-
-    // Smoothly shift lighting (warmer for island)
-    ambientLight.color.copy(new THREE.Color(0xffffff).lerp(new THREE.Color(0xfff8e7), t));
-    ambientLight.intensity = 0.6 + t * 0.3;
-    dirLight.color.copy(new THREE.Color(0xffffff).lerp(new THREE.Color(0xfff4d6), t));
-    dirLight.intensity = 1.0 + t * 0.3;
-
-    // Remove streetlights during transition
-    if (t > 0.2 && streetlights.length > 0) {
-      for (const sl of streetlights) scene.remove(sl);
-      streetlights.length = 0;
-    }
-  }
+  // Island environment is constant - no transition needed
 
   // Move all world objects
   for (const seg of roadSegments) seg.position.z += moveZ;
@@ -2374,6 +2594,20 @@ function update() {
   }
   for (const sl of streetlights) sl.position.z += moveZ;
   ground.position.z = player.position.z;
+
+  // Sun tracks player (stays in the distance)
+  sun.position.z = player.position.z - 200;
+  sunGlow.position.z = sun.position.z;
+  sunHalo.position.z = sun.position.z;
+  sunHalo.lookAt(camera.position);
+
+  // Animate clouds - slow drift + track player
+  for (const c of clouds) {
+    c.position.x += c.userData.speed * dt;
+    c.position.z += moveZ * 0.3; // parallax - clouds move slower
+    // Wrap clouds that drift too far
+    if (c.position.x > 250) c.position.x = -250;
+  }
 
   // Lane movement
   player.position.x += (state.targetX - player.position.x) * 10 * dt;
@@ -2441,17 +2675,22 @@ function update() {
 // START / RESTART
 // ─────────────────────────────────────────────
 document.getElementById('start-btn').addEventListener('click', () => {
-  document.getElementById('start-screen').classList.add('hidden');
   initAudio();
   playBgMusic();
   state.running = true;
+  // Delay hiding start screen by 2 frames so scene renders without blue flash
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById('start-screen').classList.add('hidden');
+  }));
 });
 
 document.getElementById('restart-btn').addEventListener('click', () => {
-  document.getElementById('game-over-screen').classList.add('hidden');
   initWorld();
   playBgMusic();
   state.running = true;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById('game-over-screen').classList.add('hidden');
+  }));
 });
 
 // ─────────────────────────────────────────────
