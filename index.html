@@ -2818,20 +2818,30 @@ function update() {
   function resize() {
     const rect = canvas.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return;
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-  // Delay initial resize to let fitOverlay set CSS dimensions first
-  setTimeout(resize, 100);
-  window.addEventListener('resize', () => { setTimeout(resize, 50); });
+  // Resize on image load, DOM ready, and window resize
+  const startImg = document.getElementById('startscreen-img');
+  if (startImg) {
+    if (startImg.complete) { resize(); }
+    startImg.addEventListener('load', resize);
+  }
+  setTimeout(resize, 50);
+  setTimeout(resize, 200);
+  window.addEventListener('resize', resize);
 
   // State: positions stored as fractions (0-1) of canvas size
   let dir = 1;
   let trumpFracX = -0.1; // fraction of canvas width
   let charFracY = 0.5;   // fraction of canvas height
   let speedFrac = 0.004;  // fraction of canvas width per frame
-  // sc and gap computed dynamically from canvas size
-  function getSc() { return Math.min(Math.min(canvas.width, canvas.height) * 0.004, 2.2); }
+  // sc and gap computed dynamically from CSS (logical) canvas size
+  function getCSSWidth() { return canvas.width / (window.devicePixelRatio || 1); }
+  function getCSSHeight() { return canvas.height / (window.devicePixelRatio || 1); }
+  function getSc() { return Math.min(Math.min(getCSSWidth(), getCSSHeight()) * 0.004, 2.2); }
   function getGap() { return getSc() * 48; }
 
   // File collectible state
@@ -3240,15 +3250,17 @@ function update() {
 
     const sc = getSc();
     const gap = getGap();
+    const cw = getCSSWidth();
+    const ch = getCSSHeight();
 
     // Move in fractional space
     trumpFracX += dir * speedFrac;
-    const epsteinFracX = trumpFracX - dir * (gap / canvas.width);
+    const epsteinFracX = trumpFracX - dir * (gap / cw);
 
-    // Convert fractions to pixels
-    const trumpX = trumpFracX * canvas.width;
-    const epsteinX = epsteinFracX * canvas.width;
-    const charY = charFracY * canvas.height;
+    // Convert fractions to pixels (CSS logical pixels)
+    const trumpX = trumpFracX * cw;
+    const epsteinX = epsteinFracX * cw;
+    const charY = charFracY * ch;
 
     if (dir === 1 && trumpFracX > 1.12) pickRun();
     else if (dir === -1 && trumpFracX < -0.12) pickRun();
@@ -3288,8 +3300,8 @@ function update() {
     }
 
     // File collect flash
-    const fileX = fileFracX * canvas.width;
-    const fileY = fileFracY * canvas.height;
+    const fileX = fileFracX * cw;
+    const fileY = fileFracY * ch;
     if (fileCollected) {
       fileCollectFlash += dt;
       drawCollectFlash(fileX, fileY, fileCollectFlash / 0.5);
