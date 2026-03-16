@@ -27,7 +27,117 @@ canvas { display: block; }
 #start-screen, #game-over-screen {
   position: fixed; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.75); z-index: 20; color: #fff;
+  background: #000; z-index: 20; color: #fff;
+}
+#start-screen {
+  background: #000;
+}
+#startscreen-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 1;
+}
+/* Start screen overlay — tracks the image bounds */
+#startscreen-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+/* Epstein Dash title — animated glow, positioned relative to image */
+#epstein-dash-title {
+  position: absolute;
+  top: 33%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(36px, 6vw, 80px);
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: linear-gradient(90deg, #ffd700 0%, #ffcc00 25%, #fff8dc 50%, #ffcc00 75%, #ffd700 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: titleShimmer 4s ease-in-out infinite alternate, titleFloat 3s ease-in-out infinite;
+  text-shadow: none;
+  filter: drop-shadow(0 0 15px rgba(255,215,0,0.5));
+}
+@keyframes titleShimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+@keyframes titleFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-6px); }
+}
+/* START button — positioned inside the ornate frame button area */
+#start-btn {
+  position: absolute !important;
+  bottom: 4.2%;
+  left: 50%;
+  transform: translateX(-50%) scale(1);
+  z-index: 5;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(24px, 4vw, 52px);
+  font-weight: 900;
+  letter-spacing: 0.4em;
+  color: #ffd700 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 1% 5% !important;
+  cursor: pointer;
+  pointer-events: auto;
+  white-space: nowrap;
+  text-shadow: 0 0 10px rgba(255,215,0,0.6), 0 0 25px rgba(255,165,0,0.3);
+  -webkit-text-fill-color: #ffd700;
+  animation: startPulse 2s ease-in-out infinite;
+  transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1), text-shadow 0.35s ease-in-out, filter 0.35s ease-in-out;
+}
+#start-btn:hover {
+  transform: translateX(-50%) scale(1.08);
+  text-shadow: 0 0 20px rgba(255,215,0,0.9), 0 0 40px rgba(255,165,0,0.5);
+  filter: brightness(1.15);
+}
+#start-btn.btn-pressed {
+  transform: translateX(-50%) scale(0.88) !important;
+  filter: brightness(0.85);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), filter 0.1s ease-in-out;
+}
+#start-btn.btn-release {
+  transform: translateX(-50%) scale(1.05) !important;
+  filter: brightness(1.1);
+  transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1), filter 0.25s ease-in-out;
+}
+@keyframes startPulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; text-shadow: 0 0 15px rgba(255,215,0,0.8), 0 0 30px rgba(255,165,0,0.4); }
+}
+/* Chase canvas for start screen — positioned inside overlay */
+#start-chase-canvas {
+  position: absolute;
+  top: 3%;
+  left: 3%;
+  width: 94%;
+  height: 90%;
+  z-index: 1;
+  pointer-events: none;
+}
+/* Controls hint on start screen */
+#start-controls-hint {
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-size: clamp(10px, 1.5vw, 16px);
+  color: #888;
+  text-align: center;
+  white-space: nowrap;
 }
 #game-over-screen {
   background: #000;
@@ -190,25 +300,7 @@ canvas { display: block; }
   75%  { opacity: 0.1; }
   100% { opacity: 0.2; }
 }
-#start-screen h1 {
-  font-size: 64px; font-weight: 900; margin-bottom: 10px;
-  background: linear-gradient(135deg, #ffd700, #ff6b35);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-#start-screen p {
-  font-size: 20px; color: #ccc; margin-bottom: 30px;
-}
-.btn {
-  padding: 16px 48px; font-size: 22px; font-weight: 700;
-  border: none; border-radius: 12px; cursor: pointer;
-  background: linear-gradient(135deg, #ffd700, #ff6b35);
-  color: #1a1a2e; pointer-events: auto;
-  transition: transform 0.15s;
-}
-.btn:hover { transform: scale(1.05); }
-.controls-hint {
-  margin-top: 20px; font-size: 14px; color: #888;
-}
+/* old start-screen h1/p styles removed — replaced by new start screen layout above */
 #combo-display {
   position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
   z-index: 18; pointer-events: none; text-align: center;
@@ -272,12 +364,14 @@ canvas { display: block; }
 </div>
 
 <div id="start-screen">
-  <h1>EPSTEIN DASH</h1>
-  <p>Collect and destroy all the Epstein Documents before they are released!</p>
-  <button class="btn" id="start-btn">START RUNNING</button>
-  <div class="controls-hint">
-    Arrow Keys / WASD to move &bull; Space to jump<br>
-    Swipe on mobile
+  <img src="start_screen.png" alt="The Dor Brothers" id="startscreen-img">
+  <div id="startscreen-overlay">
+    <div id="epstein-dash-title">EPSTEIN DASH</div>
+    <canvas id="start-chase-canvas"></canvas>
+    <div id="start-controls-hint">
+      Arrow Keys / WASD to move &bull; Space to jump &bull; Swipe on mobile
+    </div>
+    <button id="start-btn">START</button>
   </div>
 </div>
 
@@ -2672,16 +2766,602 @@ function update() {
 }
 
 // ─────────────────────────────────────────────
+// START SCREEN OVERLAY SIZING (track image bounds)
+// ─────────────────────────────────────────────
+(function sizeStartOverlay() {
+  const img = document.getElementById('startscreen-img');
+  const overlay = document.getElementById('startscreen-overlay');
+  if (!img || !overlay) return;
+
+  function fitOverlay() {
+    const cw = img.parentElement.clientWidth;
+    const ch = img.parentElement.clientHeight;
+    const imgRatio = img.naturalWidth / img.naturalHeight;
+    const containerRatio = cw / ch;
+    let w, h, l, t;
+    if (containerRatio > imgRatio) {
+      // letterboxed left/right
+      h = ch;
+      w = ch * imgRatio;
+      l = (cw - w) / 2;
+      t = 0;
+    } else {
+      // letterboxed top/bottom
+      w = cw;
+      h = cw / imgRatio;
+      l = 0;
+      t = (ch - h) / 2;
+    }
+    overlay.style.width = w + 'px';
+    overlay.style.height = h + 'px';
+    overlay.style.left = l + 'px';
+    overlay.style.top = t + 'px';
+  }
+  if (img.complete) fitOverlay();
+  img.addEventListener('load', fitOverlay);
+  window.addEventListener('resize', fitOverlay);
+})();
+
+// ─────────────────────────────────────────────
+// START SCREEN CHASE ANIMATION (Canvas) — Side view
+// ─────────────────────────────────────────────
+(function startChaseAnimation() {
+  const canvas = document.getElementById('start-chase-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    const overlay = document.getElementById('startscreen-overlay');
+    if (!overlay) return;
+    const rect = overlay.getBoundingClientRect();
+    canvas.width = rect.width * 0.94;
+    canvas.height = rect.height * 0.90;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // State: positions stored as fractions (0-1) of canvas size
+  let dir = 1;
+  let trumpFracX = -0.1; // fraction of canvas width
+  let charFracY = 0.5;   // fraction of canvas height
+  let speedFrac = 0.004;  // fraction of canvas width per frame
+  // sc and gap computed dynamically from canvas size
+  function getSc() { return Math.min(Math.min(canvas.width, canvas.height) * 0.004, 2.2); }
+  function getGap() { return getSc() * 48; }
+
+  // File collectible state
+  let fileFracX = -1, fileFracY = 0, fileActive = false;
+  let fileTimer = 0, fileCooldown = 3 + Math.random() * 3;
+  let trumpJumping = false, trumpJumpT = 0;
+  let fileCollected = false, fileCollectFlash = 0;
+
+  function pickRun() {
+    dir = Math.random() > 0.5 ? 1 : -1;
+    speedFrac = 0.003 + Math.random() * 0.002;
+    charFracY = 0.25 + Math.random() * 0.5;
+    trumpFracX = dir === 1 ? -0.1 : 1.1;
+  }
+  pickRun();
+
+  // SIDE-VIEW Trump (running right = facing right)
+  function drawTrumpSide(x, y, t, jumpOffset) {
+    const sc = getSc();
+    ctx.save();
+    ctx.translate(x, y - (jumpOffset || 0));
+    if (dir < 0) ctx.scale(-1, 1);
+    const legA = Math.sin(t * 14) * 0.55;
+    const armA = Math.sin(t * 14 + Math.PI) * 0.5;
+    const bounce = Math.abs(Math.sin(t * 14)) * 2;
+
+    ctx.translate(0, -bounce);
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 30*sc + bounce, 10*sc, 3*sc, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // 1) Back arm (behind body)
+    ctx.save();
+    ctx.translate(-3*sc, -7*sc);
+    ctx.rotate(-armA);
+    ctx.fillStyle = '#151530';
+    ctx.fillRect(-2*sc, 0, 4*sc, 14*sc);
+    ctx.fillStyle = '#f5d0a9';
+    ctx.beginPath();
+    ctx.arc(0, 15*sc, 2.5*sc, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // 2) Back leg (behind body) — thicker
+    ctx.save();
+    ctx.translate(0, 10*sc);
+    ctx.rotate(-legA);
+    ctx.fillStyle = '#151530';
+    ctx.fillRect(-3.5*sc, 0, 7*sc, 18*sc);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(-1.5*sc, 16*sc, 7*sc, 3*sc);
+    ctx.restore();
+
+    // 3) Torso — side view (stocky)
+    ctx.fillStyle = '#1a1a3e';
+    ctx.fillRect(-7*sc, -10*sc, 14*sc, 22*sc);
+    // Belly bulge front
+    ctx.beginPath();
+    ctx.ellipse(4*sc, 2*sc, 5*sc, 12*sc, 0, -Math.PI*0.5, Math.PI*0.5);
+    ctx.fill();
+    // White shirt line (visible on front)
+    ctx.fillStyle = '#eee';
+    ctx.fillRect(5*sc, -9*sc, 3*sc, 18*sc);
+    // Red tie (centered on shirt)
+    ctx.fillStyle = '#cc0000';
+    ctx.fillRect(6*sc, -7*sc, 2*sc, 16*sc);
+    // Tie knot
+    ctx.beginPath();
+    ctx.moveTo(5.5*sc, -7*sc);
+    ctx.lineTo(8.5*sc, -7*sc);
+    ctx.lineTo(7*sc, -5.5*sc);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4) Front leg — thicker
+    ctx.save();
+    ctx.translate(0, 10*sc);
+    ctx.rotate(legA);
+    ctx.fillStyle = '#1a1a3e';
+    ctx.fillRect(-3.5*sc, 0, 7*sc, 18*sc);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(-1.5*sc, 16*sc, 7*sc, 3*sc);
+    ctx.restore();
+
+    // 5) Front arm (in front of body)
+    ctx.save();
+    ctx.translate(3*sc, -7*sc);
+    ctx.rotate(armA);
+    ctx.fillStyle = '#1a1a3e';
+    ctx.fillRect(-2*sc, 0, 4*sc, 14*sc);
+    ctx.fillStyle = '#f5d0a9';
+    ctx.beginPath();
+    ctx.arc(0, 15*sc, 2.5*sc, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // Neck
+    ctx.fillStyle = '#f5d0a9';
+    ctx.fillRect(-2.5*sc, -14*sc, 5*sc, 5*sc);
+
+    // Head — side profile
+    ctx.fillStyle = '#f5d0a9';
+    ctx.beginPath();
+    ctx.ellipse(1*sc, -20*sc, 7*sc, 8*sc, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Nose — small side-profile triangle
+    ctx.fillStyle = '#e8c098';
+    ctx.beginPath();
+    ctx.moveTo(7*sc, -20.5*sc);
+    ctx.lineTo(9.5*sc, -19*sc);
+    ctx.lineTo(7*sc, -18*sc);
+    ctx.closePath();
+    ctx.fill();
+
+    // Golden hair
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.ellipse(0, -26*sc, 7*sc, 5*sc, -0.15, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-3*sc, -24*sc, 5*sc, 4*sc, 0.2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(5*sc, -25*sc, 4*sc, 3*sc, -0.3, 0, Math.PI*2);
+    ctx.fill();
+
+    // Eye — wide/scared
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(5*sc, -21*sc, 2*sc, 2.2*sc, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#4488cc';
+    ctx.beginPath();
+    ctx.arc(5.5*sc, -21*sc, 1.2*sc, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(5.8*sc, -21*sc, 0.5*sc, 0, Math.PI*2);
+    ctx.fill();
+
+    // Eyebrow — raised/worried
+    ctx.strokeStyle = '#b8860b';
+    ctx.lineWidth = 1.2*sc;
+    ctx.beginPath();
+    ctx.moveTo(3.5*sc, -24*sc);
+    ctx.quadraticCurveTo(5*sc, -25.5*sc, 7*sc, -24*sc);
+    ctx.stroke();
+
+    // Mouth — small worried "o" shape
+    ctx.fillStyle = '#1a0000';
+    ctx.beginPath();
+    ctx.ellipse(6.5*sc, -15.5*sc, 1.2*sc, 0.9*sc, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // SIDE-VIEW Epstein zombie (arms outstretched forward)
+  function drawEpsteinSide(x, y, t) {
+    const sc = getSc();
+    ctx.save();
+    ctx.translate(x, y);
+    if (dir < 0) ctx.scale(-1, 1);
+    const legA = Math.sin(t * 14) * 0.4;
+    const bounce = Math.abs(Math.sin(t * 14)) * 1.5;
+    const grabPulse = Math.sin(t * 6) * 0.15;
+
+    ctx.translate(0, -bounce);
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 30*sc + bounce, 10*sc, 3*sc, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // 1) Back arm (behind body) — outstretched
+    ctx.save();
+    ctx.translate(2*sc, -5*sc);
+    ctx.rotate(-1.4 + grabPulse);
+    ctx.fillStyle = '#e05500';
+    ctx.fillRect(-2*sc, 0, 4*sc, 10*sc);
+    ctx.fillStyle = '#8a9a78';
+    ctx.fillRect(-1.8*sc, 10*sc, 3.5*sc, 10*sc);
+    ctx.fillStyle = '#7a8070';
+    ctx.beginPath();
+    ctx.arc(0, 21*sc, 2.5*sc, 0, Math.PI*2);
+    ctx.fill();
+    for (let f = 0; f < 4; f++) {
+      ctx.save();
+      ctx.translate((f-1.5)*1.5*sc, 23*sc);
+      ctx.rotate(-0.2 + f*0.12);
+      ctx.fillRect(-0.5*sc, 0, 1*sc, 3.5*sc);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // 2) Back leg
+    ctx.save();
+    ctx.translate(0, 10*sc);
+    ctx.rotate(-legA);
+    ctx.fillStyle = '#e05500';
+    ctx.fillRect(-2.5*sc, 0, 5*sc, 18*sc);
+    ctx.fillStyle = '#333';
+    ctx.fillRect(-1*sc, 16*sc, 6*sc, 3*sc);
+    ctx.restore();
+
+    // 3) Torso — orange jumpsuit
+    ctx.fillStyle = '#ff6a00';
+    ctx.fillRect(-5*sc, -10*sc, 10*sc, 22*sc);
+
+    // 4) Front leg
+    ctx.save();
+    ctx.translate(0, 10*sc);
+    ctx.rotate(legA);
+    ctx.fillStyle = '#ff6a00';
+    ctx.fillRect(-2.5*sc, 0, 5*sc, 18*sc);
+    ctx.fillStyle = '#333';
+    ctx.fillRect(-1*sc, 16*sc, 6*sc, 3*sc);
+    ctx.restore();
+
+    // 5) Front arm (in front of body) — outstretched
+    ctx.save();
+    ctx.translate(4*sc, -6*sc);
+    ctx.rotate(-1.5 - grabPulse);
+    ctx.fillStyle = '#ff6a00';
+    ctx.fillRect(-2*sc, 0, 4*sc, 10*sc);
+    ctx.fillStyle = '#8a9a78';
+    ctx.fillRect(-1.8*sc, 10*sc, 3.5*sc, 10*sc);
+    ctx.fillStyle = '#7a8070';
+    ctx.beginPath();
+    ctx.arc(0, 21*sc, 2.5*sc, 0, Math.PI*2);
+    ctx.fill();
+    for (let f = 0; f < 4; f++) {
+      ctx.save();
+      ctx.translate((f-1.5)*1.5*sc, 23*sc);
+      ctx.rotate(-0.2 + f*0.12);
+      ctx.fillRect(-0.5*sc, 0, 1*sc, 3.5*sc);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // Neck
+    ctx.fillStyle = '#8a9a78';
+    ctx.fillRect(-2*sc, -14*sc, 4*sc, 5*sc);
+
+    // Head — side profile zombie
+    ctx.fillStyle = '#8a9a78';
+    ctx.beginPath();
+    ctx.ellipse(1*sc, -20*sc, 7*sc, 8*sc, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Nose — zombie side profile
+    ctx.fillStyle = '#7a8a68';
+    ctx.beginPath();
+    ctx.ellipse(8*sc, -18*sc, 2.2*sc, 1.5*sc, 0.3, 0, Math.PI*2);
+    ctx.fill();
+
+    // White hair — blocky side profile
+    ctx.fillStyle = '#d8d8d8';
+    ctx.save();
+    ctx.translate(-1*sc, -26*sc);
+    ctx.rotate(0.05);
+    ctx.fillRect(-5*sc, -3*sc, 10*sc, 7*sc);
+    ctx.restore();
+    ctx.fillStyle = '#c8c8c8';
+    ctx.save();
+    ctx.translate(-4*sc, -24*sc);
+    ctx.rotate(0.15);
+    ctx.fillRect(-2.5*sc, -2*sc, 5*sc, 6*sc);
+    ctx.restore();
+    ctx.fillStyle = '#b8b8b8';
+    ctx.save();
+    ctx.translate(3*sc, -27*sc);
+    ctx.rotate(-0.1);
+    ctx.fillRect(-3*sc, -1.5*sc, 6*sc, 4*sc);
+    ctx.restore();
+
+    // Glasses — side view
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 1.3*sc;
+    ctx.beginPath();
+    ctx.ellipse(5.5*sc, -21*sc, 1.2*sc, 2.2*sc, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(4.3*sc, -21*sc);
+    ctx.lineTo(3.5*sc, -19.5*sc);
+    ctx.stroke();
+    ctx.lineWidth = 1*sc;
+    ctx.beginPath();
+    ctx.moveTo(4.3*sc, -21.5*sc);
+    ctx.lineTo(-4*sc, -22.5*sc);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(-4*sc, -21.5*sc, 1*sc, -Math.PI*0.5, Math.PI*0.5);
+    ctx.stroke();
+
+    // Red eye
+    ctx.fillStyle = '#ff0000';
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 3*sc;
+    ctx.beginPath();
+    ctx.arc(5.5*sc, -21*sc, 0.7*sc, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Mouth — open jaw with teeth
+    ctx.fillStyle = '#8a9a78';
+    ctx.beginPath();
+    ctx.ellipse(4*sc, -14*sc, 4*sc, 2.5*sc, 0.1, 0, Math.PI);
+    ctx.fill();
+    ctx.fillStyle = '#1a0000';
+    ctx.beginPath();
+    ctx.ellipse(5.5*sc, -15.5*sc, 2*sc, 1.5*sc, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#ccccaa';
+    ctx.fillRect(4*sc, -16.5*sc, 1*sc, 1.8*sc);
+    ctx.fillRect(5.3*sc, -16.5*sc, 0.8*sc, 2*sc);
+    ctx.fillRect(6.4*sc, -16.2*sc, 0.7*sc, 1.5*sc);
+    ctx.fillRect(4.5*sc, -14.5*sc, 0.8*sc, 1.5*sc);
+    ctx.fillRect(5.8*sc, -14.5*sc, 0.7*sc, 1.3*sc);
+
+    ctx.restore();
+  }
+
+  // Draw spinning file/document
+  function drawFile(x, y, t) {
+    const sc = getSc();
+    ctx.save();
+    ctx.translate(x, y);
+    const spin = Math.cos(t * 4); // creates a flip effect
+    const bobY = Math.sin(t * 3) * 4;
+    ctx.translate(0, bobY);
+    ctx.scale(spin, 1); // horizontal flip = spinning
+
+    const fs = sc * 0.7;
+    // Paper
+    ctx.fillStyle = '#f5f0d0';
+    ctx.fillRect(-6*fs, -8*fs, 12*fs, 16*fs);
+    // Folded corner
+    ctx.fillStyle = '#ddd8b0';
+    ctx.beginPath();
+    ctx.moveTo(6*fs, -8*fs);
+    ctx.lineTo(2*fs, -8*fs);
+    ctx.lineTo(6*fs, -4*fs);
+    ctx.closePath();
+    ctx.fill();
+    // Text lines
+    ctx.fillStyle = '#333';
+    for (let i = 0; i < 5; i++) {
+      const w = (i === 0 ? 8 : 6 + Math.random() * 3) * fs;
+      ctx.fillRect(-4*fs, (-4 + i * 3) * fs, w, 1*fs);
+    }
+    // "CLASSIFIED" stamp
+    ctx.fillStyle = 'rgba(200,0,0,0.6)';
+    ctx.font = `bold ${3*fs}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.save();
+    ctx.rotate(-0.3);
+    ctx.fillText('SECRET', 0, 2*fs);
+    ctx.restore();
+    // Gold glow
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-7*fs, -9*fs, 14*fs, 18*fs);
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+  }
+
+  // Collect flash effect
+  function drawCollectFlash(x, y, progress) {
+    const sc = getSc();
+    ctx.save();
+    ctx.globalAlpha = 1 - progress;
+    const r = progress * 30 * sc;
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.stroke();
+    // Sparkles
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3 + progress * 2;
+      const sr = r * 0.8;
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      ctx.arc(x + Math.cos(a)*sr, y + Math.sin(a)*sr, 2, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  let lastTime = 0;
+  let chaseAnimId = null;
+  function animate(time) {
+    time *= 0.001;
+    const dt = lastTime ? time - lastTime : 0.016;
+    lastTime = time;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const sc = getSc();
+    const gap = getGap();
+
+    // Move in fractional space
+    trumpFracX += dir * speedFrac;
+    const epsteinFracX = trumpFracX - dir * (gap / canvas.width);
+
+    // Convert fractions to pixels
+    const trumpX = trumpFracX * canvas.width;
+    const epsteinX = epsteinFracX * canvas.width;
+    const charY = charFracY * canvas.height;
+
+    if (dir === 1 && trumpFracX > 1.12) pickRun();
+    else if (dir === -1 && trumpFracX < -0.12) pickRun();
+
+    // File spawning logic
+    fileTimer += dt;
+    if (!fileActive && !fileCollected && fileTimer > fileCooldown) {
+      fileActive = true;
+      fileFracX = trumpFracX + dir * (0.1 + Math.random() * 0.08);
+      fileFracY = charFracY - 0.12;
+    }
+
+    // Trump jump when approaching file
+    let jumpOffset = 0;
+    if (fileActive && !trumpJumping) {
+      const distFrac = Math.abs(trumpFracX - fileFracX);
+      if (distFrac < 0.05) {
+        trumpJumping = true;
+        trumpJumpT = 0;
+      }
+    }
+    if (trumpJumping) {
+      trumpJumpT += dt;
+      const jumpDuration = 0.5;
+      const jumpProgress = trumpJumpT / jumpDuration;
+      if (jumpProgress >= 1) {
+        trumpJumping = false;
+        trumpJumpT = 0;
+        if (fileActive) {
+          fileActive = false;
+          fileCollected = true;
+          fileCollectFlash = 0;
+        }
+      } else {
+        jumpOffset = Math.sin(jumpProgress * Math.PI) * 45 * sc;
+      }
+    }
+
+    // File collect flash
+    const fileX = fileFracX * canvas.width;
+    const fileY = fileFracY * canvas.height;
+    if (fileCollected) {
+      fileCollectFlash += dt;
+      drawCollectFlash(fileX, fileY, fileCollectFlash / 0.5);
+      if (fileCollectFlash > 0.5) {
+        fileCollected = false;
+        fileTimer = 0;
+        fileCooldown = 2.5 + Math.random() * 3;
+      }
+    }
+
+    if (fileActive) {
+      drawFile(fileX, fileY, time);
+    }
+
+    drawEpsteinSide(epsteinX, charY, time);
+    drawTrumpSide(trumpX, charY, time, jumpOffset);
+
+    chaseAnimId = requestAnimationFrame(animate);
+  }
+  chaseAnimId = requestAnimationFrame(animate);
+
+  const origStartBtn = document.getElementById('start-btn');
+  origStartBtn.addEventListener('click', () => {
+    if (chaseAnimId) cancelAnimationFrame(chaseAnimId);
+  }, { once: true });
+})();
+
+// ─────────────────────────────────────────────
 // START / RESTART
 // ─────────────────────────────────────────────
-document.getElementById('start-btn').addEventListener('click', () => {
-  initAudio();
-  playBgMusic();
-  state.running = true;
-  // Delay hiding start screen by 2 frames so scene renders without blue flash
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    document.getElementById('start-screen').classList.add('hidden');
-  }));
+document.getElementById('start-btn').addEventListener('click', function startBtnClick() {
+  const btn = this;
+  btn.removeEventListener('click', startBtnClick);
+  btn.style.pointerEvents = 'none';
+
+  // Button press sound — clean subtle click
+  try {
+    const actx = new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime;
+    // Short noise burst filtered to a soft tick
+    const bufLen = Math.floor(actx.sampleRate * 0.04);
+    const buf = actx.createBuffer(1, bufLen, actx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufLen * 0.08));
+    }
+    const src = actx.createBufferSource();
+    src.buffer = buf;
+    const bpf = actx.createBiquadFilter();
+    bpf.type = 'bandpass';
+    bpf.frequency.value = 3200;
+    bpf.Q.value = 2.5;
+    const gain = actx.createGain();
+    gain.gain.setValueAtTime(0.12, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    src.connect(bpf);
+    bpf.connect(gain);
+    gain.connect(actx.destination);
+    src.start(t);
+    src.stop(t + 0.04);
+  } catch(e) {}
+
+  // Compress animation
+  btn.classList.add('btn-pressed');
+  setTimeout(() => {
+    btn.classList.remove('btn-pressed');
+    btn.classList.add('btn-release');
+    setTimeout(() => {
+      btn.classList.remove('btn-release');
+      initAudio();
+      playBgMusic();
+      state.running = true;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.getElementById('start-screen').classList.add('hidden');
+      }));
+    }, 250);
+  }, 120);
 });
 
 document.getElementById('restart-btn').addEventListener('click', () => {
