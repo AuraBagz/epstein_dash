@@ -8,8 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#000000">
 <title>Epstein Dash</title>
-<link rel="icon" type="image/png" href="favcon.png">
-<link rel="apple-touch-icon" href="favcon.png">
+<link rel="icon" type="image/png" href="assets/images/favcon.png">
+<link rel="apple-touch-icon" href="assets/images/favcon.png">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -515,7 +515,7 @@ canvas { display: block; }
 <body>
 
 <div id="loading-screen">
-  <img id="loading-logo" src="dor_bros_logo.png" alt="The Dor Brothers">
+  <img id="loading-logo" src="assets/images/dor_bros_logo.png" alt="The Dor Brothers">
   <div id="loading-title">EPSTEIN DASH</div>
   <div id="loading-spinner"></div>
   <div id="loading-progress">Loading assets...</div>
@@ -531,7 +531,7 @@ canvas { display: block; }
 </div>
 
 <div id="start-screen">
-  <img src="start_screen.png" alt="The Dor Brothers" id="startscreen-img">
+  <img src="assets/images/start_screen.png" alt="The Dor Brothers" id="startscreen-img">
   <canvas id="start-chase-canvas"></canvas>
   <div id="startscreen-overlay">
     <div id="epstein-dash-title">EPSTEIN DASH</div>
@@ -544,19 +544,19 @@ canvas { display: block; }
 
 <div id="game-over-screen" class="hidden">
   <!-- Layer 5: static background -->
-  <img src="busted_screen_isolated/5.png" class="endscreen-layer" id="endlayer-5">
+  <img src="assets/images/busted_screens/5.png" class="endscreen-layer" id="endlayer-5">
   <!-- Layer 5.5: illustration panel -->
-  <img src="busted_screen_isolated/5.5.png" class="endscreen-layer" id="endlayer-5-5">
+  <img src="assets/images/busted_screens/5.5.png" class="endscreen-layer" id="endlayer-5-5">
   <!-- Layer 4: website URL — slow glow pulse -->
-  <img src="busted_screen_isolated/4.png" class="endscreen-layer" id="endlayer-4">
+  <img src="assets/images/busted_screens/4.png" class="endscreen-layer" id="endlayer-4">
   <!-- Layer 3: static frame -->
-  <img src="busted_screen_isolated/3.png" class="endscreen-layer" id="endlayer-3">
+  <img src="assets/images/busted_screens/3.png" class="endscreen-layer" id="endlayer-3">
   <!-- Layer 2: Run Again button — press animation + click sound -->
-  <img src="busted_screen_isolated/2.png" class="endscreen-layer" id="endlayer-2">
+  <img src="assets/images/busted_screens/2.png" class="endscreen-layer" id="endlayer-2">
   <!-- Layer 1: BUSTED! text — pulse -->
-  <img src="busted_screen_isolated/1.png" class="endscreen-layer" id="endlayer-1">
+  <img src="assets/images/busted_screens/1.png" class="endscreen-layer" id="endlayer-1">
   <!-- Layer 0: red lights — pulse with glow -->
-  <img src="busted_screen_isolated/0.png" class="endscreen-layer" id="endlayer-0">
+  <img src="assets/images/busted_screens/0.png" class="endscreen-layer" id="endlayer-0">
   <!-- Overlay — tracks image bounds for interactive elements -->
   <div id="endscreen-overlay">
     <a href="https://www.thedorbrothers.com" target="_blank" rel="noopener" id="endscreen-website-link">www.THEDORBROTHERS.com</a>
@@ -579,7 +579,7 @@ canvas { display: block; }
 </div>
 
 <div id="win-screen" class="hidden">
-  <video id="win-video" playsinline preload="auto" src="wow2.mp4"></video>
+  <video id="win-video" playsinline preload="auto" src="assets/video/wow2.mp4"></video>
   <div id="win-overlay">
     <div id="win-stats"></div>
     <a href="https://www.thedorbrothers.com" target="_blank" rel="noopener" class="win-btn">www.THEDORBROTHERS.com</a>
@@ -618,26 +618,26 @@ import * as THREE from 'three';
 // ─────────────────────────────────────────────
 const assetPreloader = (() => {
   const imageUrls = [
-    'dor_bros_logo.png',
-    'start_screen.png',
-    'busted_screen_isolated/0.png',
-    'busted_screen_isolated/1.png',
-    'busted_screen_isolated/2.png',
-    'busted_screen_isolated/3.png',
-    'busted_screen_isolated/4.png',
-    'busted_screen_isolated/5.png',
-    'busted_screen_isolated/5.5.png',
+    'assets/images/dor_bros_logo.png',
+    'assets/images/start_screen.png',
+    'assets/images/busted_screens/0.png',
+    'assets/images/busted_screens/1.png',
+    'assets/images/busted_screens/2.png',
+    'assets/images/busted_screens/3.png',
+    'assets/images/busted_screens/4.png',
+    'assets/images/busted_screens/5.png',
+    'assets/images/busted_screens/5.5.png',
   ];
   const audioUrls = [
-    'music.mp3',
-    'intro.mp3',
-    'gameover.mp3',
-    'gameover2.mp3',
-    'combo.mp3',
-    'combo40.mp3',
+    'assets/audio/music.mp3',
+    'assets/audio/intro.mp3',
+    'assets/audio/gameover.mp3',
+    'assets/audio/gameover2.mp3',
+    'assets/audio/combo.mp3',
+    'assets/audio/combo40.mp3',
   ];
 
-  const videoUrls = ['wow2.mp4'];
+  const videoUrls = ['assets/video/wow2.mp4'];
   const totalAssets = imageUrls.length + audioUrls.length + videoUrls.length + 1; // +1 for Three.js scene init
   let loadedCount = 0;
 
@@ -733,14 +733,14 @@ const assetPreloader = (() => {
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 let musicEnabled = true;
-const bgMusic = new Audio('music.mp3');
+const bgMusic = new Audio('assets/audio/music.mp3');
 bgMusic.loop = true;
 bgMusic.volume = 0.4;
-const gameOverClips = [new Audio('gameover.mp3'), new Audio('gameover2.mp3')];
+const gameOverClips = [new Audio('assets/audio/gameover.mp3'), new Audio('assets/audio/gameover2.mp3')];
 gameOverClips.forEach(c => c.volume = 0.7);
-const comboClip = new Audio('combo.mp3');
+const comboClip = new Audio('assets/audio/combo.mp3');
 comboClip.volume = 0.8;
-const combo40Clip = new Audio('combo40.mp3');
+const combo40Clip = new Audio('assets/audio/combo40.mp3');
 combo40Clip.volume = 0.8;
 let combo = 0;
 let comboTimer = 0;
@@ -3807,7 +3807,7 @@ function update() {
   }, { once: true });
 
   // Intro music — set up but don't play yet (loading screen handles playback)
-  const introAudio = new Audio('intro.mp3');
+  const introAudio = new Audio('assets/audio/intro.mp3');
   introAudio.loop = true;
   introAudio.volume = 0.5;
   window._introAudio = introAudio;

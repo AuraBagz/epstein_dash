@@ -1,0 +1,28 @@
+# Source/design files
+Busted_Screen/
+*.psd
+
+# Unused duplicates and source references
+ENDSCREEN.jpeg
+dor_brothers_logo.png
+ocean.png
+
+# Old flat asset files (now in assets/)
+*.mp3
+*.mp4
+!assets/**/*.mp3
+!assets/**/*.mp4
+dor_bros_logo.png
+start_screen.png
+favcon.png
+busted_screen_isolated/
+
+# IDE / editor
+.claude/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
