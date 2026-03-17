@@ -347,7 +347,47 @@ canvas { display: block; }
   font-size: 1px;
   color: transparent;
 }
-#endscreen-stats { display: none; }
+/* ─── Stats panel — horizontal case-file card ─── */
+#endscreen-stats {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  display: flex; flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+#endscreen-stats .stat-row {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  letter-spacing: 0.05em;
+  padding: 5px 10px;
+  border-right: 1px solid rgba(255, 215, 0, 0.12);
+}
+#endscreen-stats .stat-row:last-child { border-right: none; }
+#endscreen-stats .stat-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+#endscreen-stats .stat-value {
+  color: #ffd700;
+  font-weight: 900;
+  white-space: nowrap;
+  line-height: 1.1;
+}
+#endscreen-stats .stat-row.highscore .stat-value {
+  color: #ff6b35;
+}
 /* old start-screen h1/p styles removed — replaced by new start screen layout above */
 #combo-display {
   position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
@@ -451,8 +491,18 @@ canvas { display: block; }
     <button id="endlayer-2-hitbox">RUN AGAIN</button>
   </div>
   <div id="endscreen-stats">
-    <span>Epstein Files: <span id="final-score">0</span></span>
-    <span>Distance: <span id="final-distance">0</span>m</span>
+    <div class="stat-row">
+      <span class="stat-label">Files</span>
+      <span class="stat-value" id="final-score">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Distance</span>
+      <span class="stat-value" id="final-distance">0m</span>
+    </div>
+    <div class="stat-row highscore">
+      <span class="stat-label">Best</span>
+      <span class="stat-value" id="final-highscore">0</span>
+    </div>
   </div>
 </div>
 
@@ -2814,8 +2864,15 @@ function gameOver() {
     clip.currentTime = 0;
     clip.play().catch(() => {});
   }
+  // Update and persist high score
+  let highScore = parseInt(localStorage.getItem('epsteinDashHighScore') || '0', 10);
+  if (state.score > highScore) {
+    highScore = state.score;
+    localStorage.setItem('epsteinDashHighScore', highScore);
+  }
   document.getElementById('final-score').textContent = state.score;
-  document.getElementById('final-distance').textContent = Math.floor(state.distance);
+  document.getElementById('final-distance').textContent = Math.floor(state.distance) + 'm';
+  document.getElementById('final-highscore').textContent = highScore;
   document.getElementById('game-over-screen').classList.remove('hidden');
   updateEndscreenOverlay();
 }
@@ -3720,6 +3777,18 @@ function updateEndscreenOverlay() {
     link.style.top = '30%';
     link.style.width = '70%';
     link.style.height = '10%';
+  }
+
+  // Stats panel — horizontal bar centered below URL, above illustration
+  const stats = document.getElementById('endscreen-stats');
+  if (stats) {
+    const fontSize = Math.max(6, rw * 0.01);
+    const valueSize = Math.max(9, rw * 0.016);
+    stats.style.fontSize = fontSize + 'px';
+    stats.style.left = ox + rw * 0.50 + 'px';
+    stats.style.top = oy + rh * 0.58 + 'px';
+    stats.style.transform = 'translateX(-50%)';
+    stats.querySelectorAll('.stat-value').forEach(v => v.style.fontSize = valueSize + 'px');
   }
 
 }
