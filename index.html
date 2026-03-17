@@ -8,6 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#000000">
 <title>Epstein Dash</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -361,43 +363,20 @@ canvas { display: block; }
   overflow: visible;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  /* Metallic gold border */
-  border-image: linear-gradient(
-    135deg,
-    #7a5e1e 0%, #c9a84c 15%, #ffd700 25%, #fffbe6 35%,
-    #c9a84c 45%, #7a5e1e 55%, #c9a84c 65%, #ffd700 75%,
-    #fffbe6 85%, #c9a84c 95%, #7a5e1e 100%
-  ) 1;
-  box-shadow:
-    0 0 4px rgba(255, 215, 0, 0.3),
-    inset 0 1px 0 rgba(255, 248, 220, 0.15),
-    inset 0 -1px 0 rgba(122, 94, 30, 0.3);
+  /* Gold border with animated glow */
+  border-color: #c9a84c;
+  animation: statsGlow 3s ease-in-out infinite;
   position: absolute;
 }
-/* Traveling shine overlay on the border */
-#endscreen-stats::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 6px;
-  border: 2px solid transparent;
-  border-image: linear-gradient(
-    90deg,
-    transparent 0%, transparent 35%,
-    rgba(255, 248, 220, 0.9) 48%, #fff 50%, rgba(255, 248, 220, 0.9) 52%,
-    transparent 65%, transparent 100%
-  ) 1;
-  background-size: 300% 100%;
-  animation: goldSweep 3s ease-in-out infinite;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-@keyframes goldSweep {
-  0% { opacity: 0; border-image-source: linear-gradient(90deg, transparent 0%, transparent 100%); }
-  20% { opacity: 1; border-image-source: linear-gradient(90deg, transparent 0%, transparent 30%, rgba(255,248,220,0.8) 45%, #fff 50%, rgba(255,248,220,0.8) 55%, transparent 70%, transparent 100%); }
-  40% { opacity: 1; border-image-source: linear-gradient(90deg, transparent 30%, rgba(255,248,220,0.8) 55%, #fff 60%, rgba(255,248,220,0.8) 65%, transparent 80%, transparent 100%); }
-  60% { opacity: 1; border-image-source: linear-gradient(90deg, transparent 50%, rgba(255,248,220,0.8) 70%, #fff 75%, rgba(255,248,220,0.8) 80%, transparent 95%, transparent 100%); }
-  80%, 100% { opacity: 0; border-image-source: linear-gradient(90deg, transparent 0%, transparent 100%); }
+@keyframes statsGlow {
+  0%, 100% {
+    border-color: #7a5e1e;
+    box-shadow: 0 0 4px rgba(255,215,0,0.2), 0 0 8px rgba(255,215,0,0.1);
+  }
+  50% {
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(255,215,0,0.6), 0 0 20px rgba(255,215,0,0.3), 0 0 40px rgba(255,215,0,0.1);
+  }
 }
 #endscreen-stats .stat-row {
   display: flex; flex-direction: column;
@@ -409,7 +388,7 @@ canvas { display: block; }
 }
 #endscreen-stats .stat-row:last-child { border-right: none; }
 #endscreen-stats .stat-label {
-  color: rgba(255, 255, 255, 0.5);
+  color: #fff;
   font-weight: 400;
   text-transform: uppercase;
   white-space: nowrap;
@@ -3860,12 +3839,22 @@ function updateEndscreenOverlay() {
     const fontSize = rw * 0.014;
     const valueSize = rw * 0.022;
     const padding = rw * 0.008;
+    const borderW = Math.max(1, rw * 0.002);
+    const borderR = Math.max(2, rw * 0.005);
     stats.style.fontSize = fontSize + 'px';
     stats.style.left = ox + rw * 0.50 + 'px';
     stats.style.top = oy + rh * 0.46 + 'px';
     stats.style.transform = 'translateX(-50%)';
+    stats.style.borderWidth = borderW + 'px';
+    stats.style.borderRadius = borderR + 'px';
     stats.querySelectorAll('.stat-value').forEach(v => v.style.fontSize = valueSize + 'px');
-    stats.querySelectorAll('.stat-row').forEach(r => r.style.padding = padding + 'px ' + (padding * 1.5) + 'px');
+    stats.querySelectorAll('.stat-row').forEach(r => {
+      r.style.padding = padding + 'px ' + (padding * 1.5) + 'px';
+      r.style.borderRightWidth = borderW + 'px';
+    });
+    // Scale the ::before pseudo-element inset via CSS variable
+    stats.style.setProperty('--stats-border-w', borderW + 'px');
+    stats.style.setProperty('--stats-border-r', borderR + 'px');
   }
 
 }
