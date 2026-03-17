@@ -56,7 +56,7 @@ canvas { display: block; }
   transform: translateX(-50%);
   z-index: 3;
   font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: clamp(36px, 6vw, 80px);
+  font-size: 48px; /* overridden by JS fitOverlay */
   font-weight: 900;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -80,19 +80,19 @@ canvas { display: block; }
 /* START button — positioned inside the ornate frame button area */
 #start-btn {
   position: absolute !important;
-  bottom: 4.2%;
+  bottom: 3.5%;
   left: 50%;
   transform: translateX(-50%) scale(1);
   z-index: 5;
   font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: clamp(24px, 4vw, 52px);
+  font-size: 32px; /* overridden by JS fitOverlay */
   font-weight: 900;
   letter-spacing: 0.4em;
   color: #ffd700 !important;
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
-  padding: 1% 5% !important;
+  padding: 0.8% 5% !important;
   cursor: pointer;
   pointer-events: auto;
   white-space: nowrap;
@@ -133,7 +133,7 @@ canvas { display: block; }
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
-  font-size: clamp(10px, 1.5vw, 16px);
+  font-size: 12px; /* overridden by JS fitOverlay */
   color: #888;
   text-align: center;
   white-space: nowrap;
@@ -141,164 +141,93 @@ canvas { display: block; }
 #game-over-screen {
   background: #000;
 }
-#endscreen-img {
+/* ─── Layered endscreen: all layers are 5504x3072, stacked with object-fit:contain ─── */
+.endscreen-layer {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: contain;
   pointer-events: none;
-  animation: endscreenPulse 4s ease-in-out infinite, endscreenGlow 3s ease-in-out infinite alternate;
 }
-@keyframes endscreenPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.012); }
+/* Layer 5: static background */
+#endlayer-5 { z-index: 1; }
+/* Layer 5.5: illustration panel — static */
+#endlayer-5-5 { z-index: 1; }
+/* Layer 4: website URL — slow glow pulse */
+#endlayer-4 {
+  z-index: 2;
+  animation: urlGlowPulse 4s ease-in-out infinite;
+  transition: transform 0.3s ease, filter 0.3s ease;
 }
-@keyframes endscreenGlow {
-  0% { filter: brightness(1) contrast(1); }
-  100% { filter: brightness(1.08) contrast(1.05); }
+@keyframes urlGlowPulse {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 0px transparent); }
+  50% { filter: brightness(1.2) drop-shadow(0 0 12px rgba(255,215,0,0.4)); }
 }
-#game-over-screen::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%);
-  pointer-events: none;
-  z-index: 1;
-  animation: vignetteFlicker 5s ease-in-out infinite alternate;
+#endlayer-4.hovered {
+  animation: none;
+  transform: scale(1.05);
+  filter: brightness(1.3) drop-shadow(0 0 18px rgba(255,215,0,0.6));
+  cursor: pointer;
 }
-@keyframes vignetteFlicker {
-  0% { opacity: 0.6; }
-  50% { opacity: 0.9; }
-  100% { opacity: 0.7; }
+/* Layer 3: static frame */
+#endlayer-3 { z-index: 4; }
+/* Layer 2: Run Again button */
+#endlayer-2 {
+  z-index: 5;
+  transform-origin: 50% 90%;
+  transition: transform 0.3s ease, filter 0.3s ease;
 }
+#endlayer-2.hovered {
+  transform: scale(1.03);
+  filter: brightness(1.25) drop-shadow(0 0 14px rgba(255,215,0,0.5));
+}
+/* Invisible hitbox over Run Again area */
+#endlayer-2-hitbox {
+  position: absolute;
+  cursor: pointer;
+  pointer-events: auto;
+  background: transparent;
+  border: none; outline: none;
+  z-index: 6;
+  font-size: 1px;
+  color: transparent;
+}
+/* Layer 1: BUSTED! text — pulse with red glow */
+#endlayer-1 {
+  z-index: 7;
+  animation: bustedPulse 2.5s ease-in-out infinite;
+}
+@keyframes bustedPulse {
+  0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px transparent); }
+  50% { transform: scale(1.03); filter: brightness(1.2) drop-shadow(0 0 12px rgba(255,0,0,0.5)); }
+}
+/* Layer 0: red lights — subtle slow pulse */
+#endlayer-0 {
+  z-index: 8;
+  animation: lightsPulse 3.5s ease-in-out infinite;
+}
+@keyframes lightsPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.015); opacity: 1; }
+}
+/* Overlay — tracks rendered image bounds for positioning interactive elements */
 #endscreen-overlay {
   position: absolute;
   pointer-events: none;
-  z-index: 2;
+  z-index: 9;
 }
-/* Pointing arrows flanking the website URL */
-#website-arrows {
-  position: absolute;
-  top: 34%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 78%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  pointer-events: none;
-  z-index: 2;
-}
-#website-arrows .arrow {
-  font-size: 4vw;
-  color: #ffd700;
-  text-shadow: none;
-  animation: arrowBounce 1s ease-in-out infinite;
-  filter: none;
-}
-#website-arrows .arrow-left {
-  animation-name: arrowBounceLeft;
-}
-#website-arrows .arrow-right {
-  animation-name: arrowBounceRight;
-}
-@keyframes arrowBounceLeft {
-  0%, 100% { transform: translateX(0); opacity: 0.7; }
-  50% { transform: translateX(-8px); opacity: 1; }
-}
-@keyframes arrowBounceRight {
-  0%, 100% { transform: translateX(0); opacity: 0.7; }
-  50% { transform: translateX(8px); opacity: 1; }
-}
+/* Website link (invisible clickable area over layer 4) */
 #endscreen-website-link {
-  display: block;
-  font-size: 1px;
-  color: transparent;
+  position: absolute;
+  background: transparent;
+  border: none; outline: none;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 3;
   text-decoration: none;
-  pointer-events: auto;
-  cursor: pointer;
-  position: absolute;
-  top: 30%;
-  left: 15%;
-  width: 70%;
-  height: 12%;
-  z-index: 3;
-  background: transparent;
-  border: none; outline: none;
-}
-#restart-btn {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   font-size: 1px;
   color: transparent;
-  background: transparent;
-  border: none; outline: none;
-  cursor: pointer;
-  pointer-events: auto;
-  z-index: 5;
-  border-radius: 0;
-  padding: 0;
 }
-#restart-btn:hover, #endscreen-website-link:hover {
-  background: transparent !important;
-}
-#restart-btn:active {
-  opacity: 0.7;
-}
-/* Snake line animation around Run Again */
-#restart-snake-border {
-  position: absolute;
-  bottom: 2.8%;
-  left: 37%;
-  width: 26%;
-  height: 10%;
-  z-index: 3;
-  pointer-events: none;
-  overflow: hidden;
-}
-#restart-snake-border::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%; width: 60%; height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255,215,0,0.0) 20%,
-    rgba(255,215,0,0.4) 40%,
-    rgba(255,255,255,0.6) 50%,
-    rgba(255,215,0,0.4) 60%,
-    rgba(255,215,0,0.0) 80%,
-    transparent 100%
-  );
-  animation: shineSwipe 2.5s ease-in-out infinite;
-}
-@keyframes shineSwipe {
-  0%   { left: -100%; }
-  100% { left: 200%; }
-}
-#endscreen-stats {
-  display: none;
-}
-/* Red police siren glow - positioned relative to endscreen-overlay (tracks image) */
-#endscreen-overlay::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 22% 8%, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0.15) 15%, transparent 35%),
-    radial-gradient(circle at 78% 8%, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0.15) 15%, transparent 35%);
-  pointer-events: none;
-  z-index: 1;
-  animation: sirenGlow 1.2s ease-in-out infinite;
-}
-@keyframes sirenGlow {
-  0%   { opacity: 0.2; }
-  15%  { opacity: 1; }
-  40%  { opacity: 0.1; }
-  55%  { opacity: 0.9; }
-  75%  { opacity: 0.1; }
-  100% { opacity: 0.2; }
-}
+#endscreen-stats { display: none; }
 /* old start-screen h1/p styles removed — replaced by new start screen layout above */
 #combo-display {
   position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
@@ -375,14 +304,24 @@ canvas { display: block; }
 </div>
 
 <div id="game-over-screen" class="hidden">
-  <img src="ENDSCREEN.jpeg" alt="BUSTED!" id="endscreen-img">
+  <!-- Layer 5: static background -->
+  <img src="busted_screen_isolated/5.png" class="endscreen-layer" id="endlayer-5">
+  <!-- Layer 5.5: illustration panel -->
+  <img src="busted_screen_isolated/5.5.png" class="endscreen-layer" id="endlayer-5-5">
+  <!-- Layer 4: website URL — slow glow pulse -->
+  <img src="busted_screen_isolated/4.png" class="endscreen-layer" id="endlayer-4">
+  <!-- Layer 3: static frame -->
+  <img src="busted_screen_isolated/3.png" class="endscreen-layer" id="endlayer-3">
+  <!-- Layer 2: Run Again button — press animation + click sound -->
+  <img src="busted_screen_isolated/2.png" class="endscreen-layer" id="endlayer-2">
+  <!-- Layer 1: BUSTED! text — pulse -->
+  <img src="busted_screen_isolated/1.png" class="endscreen-layer" id="endlayer-1">
+  <!-- Layer 0: red lights — pulse with glow -->
+  <img src="busted_screen_isolated/0.png" class="endscreen-layer" id="endlayer-0">
+  <!-- Overlay — tracks image bounds for interactive elements -->
   <div id="endscreen-overlay">
-    <div id="website-arrows">
-      <span class="arrow arrow-left">&#9658;&#9658;</span>
-      <span class="arrow arrow-right">&#9668;&#9668;</span>
-    </div>
     <a href="https://www.thedorbrothers.com" target="_blank" rel="noopener" id="endscreen-website-link">www.THEDORBROTHERS.com</a>
-    <div id="restart-snake-border"><button class="btn" id="restart-btn">RUN AGAIN</button></div>
+    <button id="endlayer-2-hitbox">RUN AGAIN</button>
   </div>
   <div id="endscreen-stats">
     <span>Epstein Files: <span id="final-score">0</span></span>
@@ -2804,6 +2743,13 @@ function update() {
       chaseCanvas.style.left = l + 'px';
       chaseCanvas.style.top = t + 'px';
     }
+    // Scale font sizes to rendered image width
+    const title = document.getElementById('epstein-dash-title');
+    const btn = document.getElementById('start-btn');
+    const hint = document.getElementById('start-controls-hint');
+    if (title) title.style.fontSize = Math.max(18, w * 0.06) + 'px';
+    if (btn) btn.style.fontSize = Math.max(14, w * 0.035) + 'px';
+    if (hint) hint.style.fontSize = Math.max(8, w * 0.014) + 'px';
   }
   if (img.complete) fitOverlay();
   img.addEventListener('load', fitOverlay);
@@ -3249,12 +3195,13 @@ function update() {
     time *= 0.001;
     const dt = lastTime ? time - lastTime : 0.016;
     lastTime = time;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear using CSS logical dimensions (transform handles DPR scaling)
+    const cw = getCSSWidth();
+    const ch = getCSSHeight();
+    ctx.clearRect(0, 0, cw, ch);
 
     const sc = getSc();
     const gap = getGap();
-    const cw = getCSSWidth();
-    const ch = getCSSHeight();
 
     // Move in fractional space
     trumpFracX += dir * speedFrac;
@@ -3417,36 +3364,109 @@ document.getElementById('start-btn').addEventListener('click', function startBtn
   }, 120);
 });
 
-document.getElementById('restart-btn').addEventListener('click', () => {
-  initWorld();
-  playBgMusic();
-  state.running = true;
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    document.getElementById('game-over-screen').classList.add('hidden');
-  }));
-});
+// ─────────────────────────────────────────────
+// LAYERED ENDSCREEN — Run Again button with press animation + sound
+// ─────────────────────────────────────────────
+(function setupEndscreenButton() {
+  const hitbox = document.getElementById('endlayer-2-hitbox');
+  const layer2img = document.getElementById('endlayer-2');
+  if (!hitbox) return;
+
+  hitbox.addEventListener('click', () => {
+    // Click sound — same as start button
+    try {
+      const actx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = actx.createOscillator();
+      const gain = actx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(900, actx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, actx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.10, actx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.15);
+      osc.connect(gain); gain.connect(actx.destination);
+      osc.start(); osc.stop(actx.currentTime + 0.15);
+    } catch(e) {}
+
+    // Press animation on the Run Again image
+    layer2img.style.transition = 'transform 0.12s cubic-bezier(0.4,0,0.2,1)';
+    layer2img.style.transform = 'scale(0.93)';
+    setTimeout(() => {
+      layer2img.style.transition = 'transform 0.25s cubic-bezier(0.18,0.89,0.32,1.27)';
+      layer2img.style.transform = 'scale(1)';
+      setTimeout(() => {
+        initWorld();
+        playBgMusic();
+        state.running = true;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          document.getElementById('game-over-screen').classList.add('hidden');
+        }));
+      }, 250);
+    }, 120);
+  });
+})();
 
 // ─────────────────────────────────────────────
-// ENDSCREEN OVERLAY - track actual image bounds
+// ENDSCREEN — hover effects for Run Again + website link
+// ─────────────────────────────────────────────
+(function setupEndscreenHovers() {
+  const hitbox = document.getElementById('endlayer-2-hitbox');
+  const layer2 = document.getElementById('endlayer-2');
+  const link = document.getElementById('endscreen-website-link');
+  const layer4 = document.getElementById('endlayer-4');
+
+  if (hitbox && layer2) {
+    hitbox.addEventListener('mouseenter', () => layer2.classList.add('hovered'));
+    hitbox.addEventListener('mouseleave', () => layer2.classList.remove('hovered'));
+  }
+  if (link && layer4) {
+    link.addEventListener('mouseenter', () => layer4.classList.add('hovered'));
+    link.addEventListener('mouseleave', () => layer4.classList.remove('hovered'));
+  }
+})();
+
+// ─────────────────────────────────────────────
+// ENDSCREEN — position overlay + interactive elements to match image bounds
 // ─────────────────────────────────────────────
 window.updateEndscreenOverlay = updateEndscreenOverlay;
 function updateEndscreenOverlay() {
-  const img = document.getElementById('endscreen-img');
-  const overlay = document.getElementById('endscreen-overlay');
+  const refImg = document.getElementById('endlayer-5');
   const container = document.getElementById('game-over-screen');
-  if (!img || !overlay || !container) return;
-  // Calculate rendered image bounds with object-fit: contain
+  const overlay = document.getElementById('endscreen-overlay');
+  if (!refImg || !container || !overlay) return;
+
   const cw = container.clientWidth, ch = container.clientHeight;
-  const iw = img.naturalWidth || 5504, ih = img.naturalHeight || 3072;
+  const iw = refImg.naturalWidth || 5504, ih = refImg.naturalHeight || 3072;
   const scale = Math.min(cw / iw, ch / ih);
   const rw = iw * scale, rh = ih * scale;
-  const offsetX = (cw - rw) / 2, offsetY = (ch - rh) / 2;
-  overlay.style.left = offsetX + 'px';
-  overlay.style.top = offsetY + 'px';
+  const ox = (cw - rw) / 2, oy = (ch - rh) / 2;
+
+  // Size overlay to match rendered image bounds
+  overlay.style.left = ox + 'px';
+  overlay.style.top = oy + 'px';
   overlay.style.width = rw + 'px';
   overlay.style.height = rh + 'px';
+
+  // Run Again hitbox — positioned as % of overlay (bottom center area)
+  const hitbox = document.getElementById('endlayer-2-hitbox');
+  if (hitbox) {
+    hitbox.style.left = '35%';
+    hitbox.style.top = '85%';
+    hitbox.style.width = '30%';
+    hitbox.style.height = '12%';
+  }
+
+  // Website link — positioned as % of overlay (middle area)
+  const link = document.getElementById('endscreen-website-link');
+  if (link) {
+    link.style.left = '15%';
+    link.style.top = '30%';
+    link.style.width = '70%';
+    link.style.height = '10%';
+  }
+
 }
 
+// ─────────────────────────────────────────────
 // Resize
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -3458,8 +3478,6 @@ window.addEventListener('resize', () => {
 // Boot
 initWorld();
 update();
-
-// Shine effect is pure CSS now - no JS needed for Run Again highlight
 </script>
 </body>
 </html>
