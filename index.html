@@ -454,6 +454,62 @@ canvas { display: block; }
   backdrop-filter: blur(4px);
 }
 /* Mobile buttons hidden — swipe controls used instead */
+
+/* ── Win Screen ── */
+#win-screen {
+  position: fixed; inset: 0; z-index: 30;
+  background: #000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+#win-video {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  position: absolute; inset: 0;
+  z-index: 1;
+}
+#win-overlay {
+  position: relative; z-index: 2;
+  display: none; /* shown after video ends */
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  padding: 20px;
+}
+#win-overlay .win-btn {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(16px, 3.5vw, 24px); font-weight: 900;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 14px 36px; border-radius: 8px;
+  cursor: pointer; text-decoration: none;
+  display: inline-block; text-align: center;
+  transition: all 0.2s;
+  /* Gold bar style */
+  color: #1a1200;
+  background: linear-gradient(
+    180deg,
+    #fffbe6 0%, #ffd700 15%, #c9a84c 40%,
+    #7a5e1e 55%, #c9a84c 70%, #ffd700 85%, #fffbe6 100%
+  );
+  border: 2px solid #ffd700;
+  box-shadow:
+    0 2px 8px rgba(255,215,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -1px 0 rgba(0,0,0,0.2);
+  animation: statsGlow 3s ease-in-out infinite;
+}
+#win-overlay .win-btn:hover, #win-overlay .win-btn:active {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+#win-stats {
+  color: #fff; text-align: center;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(14px, 3vw, 22px);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  margin-bottom: 10px;
+}
+#win-stats span { color: #ffd700; font-weight: 900; }
 </style>
 </head>
 <body>
@@ -519,6 +575,15 @@ canvas { display: block; }
       <span class="stat-label">Best</span>
       <span class="stat-value" id="final-highscore">0</span>
     </div>
+  </div>
+</div>
+
+<div id="win-screen" class="hidden">
+  <video id="win-video" playsinline></video>
+  <div id="win-overlay">
+    <div id="win-stats"></div>
+    <a href="https://www.thedorbrothers.com" target="_blank" rel="noopener" class="win-btn">www.THEDORBROTHERS.com</a>
+    <button id="win-run-again" class="win-btn">Run Again</button>
   </div>
 </div>
 
@@ -857,7 +922,7 @@ const LANE_WIDTH = 4;
 const LANES = [-LANE_WIDTH, 0, LANE_WIDTH];
 const ROAD_WIDTH = 16;
 const ROAD_SEGMENT_LENGTH = 200;
-const SEGMENT_COUNT = 3;
+const SEGMENT_COUNT = 6;
 const BASE_SPEED = 30;
 const MAX_SPEED = 70;
 const SPEED_INCREASE = 0.5; // per second
@@ -1907,13 +1972,16 @@ function createStripedBuilding(x, z, side) {
 function createIslandRoadSegment(zOffset) {
   const seg = new THREE.Group();
 
-  // Sand/dirt road
+  // Sand/dirt road — extended 30 units behind segment origin to cover camera view
+  const EXTEND_BEHIND = 30;
+  const extLen = ROAD_SEGMENT_LENGTH + EXTEND_BEHIND;
+  const extCenter = -(ROAD_SEGMENT_LENGTH - EXTEND_BEHIND) / 2; // shifted so plane goes from -200 to +30
   const road = new THREE.Mesh(
-    new THREE.PlaneGeometry(ROAD_WIDTH, ROAD_SEGMENT_LENGTH),
+    new THREE.PlaneGeometry(ROAD_WIDTH, extLen),
     sandMat
   );
   road.rotation.x = -Math.PI / 2;
-  road.position.set(0, 0.01, -ROAD_SEGMENT_LENGTH / 2);
+  road.position.set(0, 0.01, extCenter);
   road.receiveShadow = true;
   seg.add(road);
 
@@ -1960,29 +2028,30 @@ function createIslandRoadSegment(zOffset) {
     }
   }
 
-  // Beach strip next to road
+  // Beach and ocean use same extended length to cover camera area behind segment origin
+  // Beach strips — left and right of road only
   const beachWidth = 12;
-  const beachMat = new THREE.MeshStandardMaterial({ color: 0xf5deb3, roughness: 0.95 });
+  const beachMat = new THREE.MeshBasicMaterial({ color: 0xf5deb3 });
   for (let side of [-1, 1]) {
     const beach = new THREE.Mesh(
-      new THREE.PlaneGeometry(beachWidth, ROAD_SEGMENT_LENGTH),
+      new THREE.PlaneGeometry(beachWidth, extLen),
       beachMat
     );
     beach.rotation.x = -Math.PI / 2;
-    beach.position.set(side * (ROAD_WIDTH / 2 + beachWidth / 2), 0.005, -ROAD_SEGMENT_LENGTH / 2);
+    beach.position.set(side * (ROAD_WIDTH / 2 + beachWidth / 2), 0.005, extCenter);
     seg.add(beach);
   }
 
-  // Ocean starts RIGHT at beach outer edge - no overlap with road/beach
+  // Ocean strips — left and right of beach, extending to horizon
   const oceanWidth = 500;
   const beachOuterEdge = ROAD_WIDTH / 2 + beachWidth;
   for (let side of [-1, 1]) {
     const ocean = new THREE.Mesh(
-      new THREE.PlaneGeometry(oceanWidth, ROAD_SEGMENT_LENGTH + 200),
+      new THREE.PlaneGeometry(oceanWidth, extLen),
       oceanMat
     );
     ocean.rotation.x = -Math.PI / 2;
-    ocean.position.set(side * (beachOuterEdge + oceanWidth / 2), -0.01, -ROAD_SEGMENT_LENGTH / 2);
+    ocean.position.set(side * (beachOuterEdge + oceanWidth / 2), 0.005, extCenter);
     seg.add(ocean);
   }
 
@@ -2425,41 +2494,35 @@ let nextDocumentZ = -15;
 let player;
 const playerBBox = new THREE.Box3();
 
-// Sand fill plane - covers gaps behind player so sky/blue doesn't show through
-const groundFillGeo = new THREE.PlaneGeometry(3000, 3000);
-const groundFillMat = new THREE.MeshStandardMaterial({ color: 0xc4a46c, roughness: 0.95 });
-const ground = new THREE.Mesh(groundFillGeo, groundFillMat);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -0.02;
-scene.add(ground);
+const ground = { position: { z: 0 } }; // stub for ground.position.z references
 
 // ─────────────────────────────────────────────
 // SUN & CLOUDS
 // ─────────────────────────────────────────────
 // Sun - large glowing sphere in the distance
 const sunGeo = new THREE.SphereGeometry(15, 32, 32);
-const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdd44 });
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdd44, fog: false });
 const sun = new THREE.Mesh(sunGeo, sunMat);
 sun.position.set(80, 60, -200);
 scene.add(sun);
 
 // Sun glow (larger transparent sphere)
 const sunGlowGeo = new THREE.SphereGeometry(25, 32, 32);
-const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xffeeaa, transparent: true, opacity: 0.2 });
+const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xffeeaa, transparent: true, opacity: 0.3, fog: false });
 const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
 sunGlow.position.copy(sun.position);
 scene.add(sunGlow);
 
 // Sun halo ring
 const sunHaloGeo = new THREE.RingGeometry(18, 40, 32);
-const sunHaloMat = new THREE.MeshBasicMaterial({ color: 0xfff8dd, transparent: true, opacity: 0.1, side: THREE.DoubleSide });
+const sunHaloMat = new THREE.MeshBasicMaterial({ color: 0xfff8dd, transparent: true, opacity: 0.15, side: THREE.DoubleSide, fog: false });
 const sunHalo = new THREE.Mesh(sunHaloGeo, sunHaloMat);
 sunHalo.position.copy(sun.position);
 scene.add(sunHalo);
 
 // Clouds - fluffy groups of spheres
 const clouds = [];
-const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, fog: false });
 
 function createCloud(x, y, z) {
   const group = new THREE.Group();
@@ -2532,12 +2595,10 @@ function initWorld() {
     scene.add(seg);
     roadSegments.push(seg);
 
-    // Only populate scenery for forward segments (not behind player)
-    if (i >= 0) {
-      const buildings = populateBuildingsForSegment(z);
-      scene.add(buildings);
-      buildingGroups.push(buildings);
-    }
+    // Populate scenery for all segments — keeps arrays aligned with roadSegments
+    const buildings = populateBuildingsForSegment(z);
+    scene.add(buildings);
+    buildingGroups.push(buildings);
   }
 
   // Player
@@ -2733,6 +2794,8 @@ function checkDocumentPickup() {
       scene.remove(doc);
       state.score++;
       playSfx('collect');
+      // Win condition
+      if (state.score >= WIN_SCORE) { gameWin(); return; }
       // Boost: push zombie back and speed up temporarily
       zombieZ += 1.5;
       if (zombieZ > ZOMBIE_START_Z) zombieZ = ZOMBIE_START_Z;
@@ -2842,21 +2905,27 @@ function cleanupBehindPlayer(playerZ) {
       documents.splice(i, 1);
     }
   }
-  // Recycle road segments
+  // Recycle road segments — only recycle ONE per frame to avoid stutter
   for (let i = 0; i < roadSegments.length; i++) {
-    if (roadSegments[i].position.z > playerZ + ROAD_SEGMENT_LENGTH) {
+    if (roadSegments[i].position.z > playerZ + ROAD_SEGMENT_LENGTH + 30) {
       const newZ = roadSegments[i].position.z - SEGMENT_COUNT * ROAD_SEGMENT_LENGTH;
 
-      // Replace road segment with level-appropriate one
-      scene.remove(roadSegments[i]);
-      roadSegments[i] = createLevelRoadSegment(newZ);
-      roadSegments[i].position.z = newZ;
-      scene.add(roadSegments[i]);
+      // Replace road segment — add new, defer removal to next frame
+      const oldSeg = roadSegments[i];
+      const newSeg = createLevelRoadSegment(newZ);
+      newSeg.position.z = newZ;
+      scene.add(newSeg);
+      roadSegments[i] = newSeg;
+      requestAnimationFrame(() => scene.remove(oldSeg));
 
-      // Recycle buildings/props
-      scene.remove(buildingGroups[i]);
-      buildingGroups[i] = populateBuildingsForSegment(newZ);
-      scene.add(buildingGroups[i]);
+      // Recycle buildings/props — same deferred removal
+      const oldBg = buildingGroups[i];
+      const newBg = populateBuildingsForSegment(newZ);
+      scene.add(newBg);
+      buildingGroups[i] = newBg;
+      requestAnimationFrame(() => scene.remove(oldBg));
+
+      break; // Only one segment per frame to spread the GPU cost
     }
   }
   // Recycle streetlights
@@ -2875,6 +2944,7 @@ function gameOver() {
   state.running = false;
   playSfx('gameover');
   bgMusic.pause();
+  renderer.domElement.style.display = 'none';
   if (musicEnabled) {
     const clip = gameOverClips[Math.floor(Math.random() * gameOverClips.length)];
     clip.currentTime = 0;
@@ -2894,16 +2964,83 @@ function gameOver() {
 }
 
 // ─────────────────────────────────────────────
+// WIN CONDITION
+// ─────────────────────────────────────────────
+const WIN_SCORE = 50;
+
+function gameWin() {
+  state.running = false;
+  bgMusic.pause();
+  renderer.domElement.style.display = 'none';
+
+  // Update high score
+  let highScore = parseInt(localStorage.getItem('epsteinDashHighScore') || '0', 10);
+  if (state.score > highScore) {
+    highScore = state.score;
+    localStorage.setItem('epsteinDashHighScore', highScore);
+  }
+
+  // Show win screen with video
+  const winScreen = document.getElementById('win-screen');
+  const video = document.getElementById('win-video');
+  const overlay = document.getElementById('win-overlay');
+  const stats = document.getElementById('win-stats');
+
+  stats.innerHTML = 'Files: <span>' + state.score + '</span> &bull; Distance: <span>' + Math.floor(state.distance) + 'm</span> &bull; Best: <span>' + highScore + '</span>';
+  overlay.style.display = 'none';
+  winScreen.classList.remove('hidden');
+
+  // Play video
+  video.src = 'wow2.mp4';
+  video.muted = false;
+  video.play().catch(() => { video.muted = true; video.play().catch(() => {}); });
+
+  // Show buttons when video ends (or on click to skip)
+  const showOverlay = () => {
+    overlay.style.display = 'flex';
+  };
+  video.addEventListener('ended', showOverlay, { once: true });
+  video.addEventListener('click', () => {
+    video.pause();
+    showOverlay();
+  }, { once: true });
+  video.addEventListener('touchend', () => {
+    video.pause();
+    showOverlay();
+  }, { once: true });
+}
+
+// Win screen — Run Again button
+document.getElementById('win-run-again').addEventListener('click', () => {
+  const winScreen = document.getElementById('win-screen');
+  const video = document.getElementById('win-video');
+  video.pause();
+  video.src = '';
+  winScreen.classList.add('hidden');
+  renderer.domElement.style.display = 'block';
+  initWorld();
+  playBgMusic();
+  state.running = true;
+});
+
+// ─────────────────────────────────────────────
 // GAME LOOP
 // ─────────────────────────────────────────────
 const clock = new THREE.Clock();
 
+let renderStopped = false;
 function update() {
   requestAnimationFrame(update);
+
+  // Don't touch the renderer at all when canvas is hidden
+  if (renderStopped) return;
 
   const dt = Math.min(clock.getDelta(), 0.05);
 
   if (!state.running) {
+    // Skip rendering when an overlay is visible
+    if (renderer.domElement.style.display === 'none') return;
+
     // Idle animation for menu
     if (player) {
       player.rotation.y = Math.PI + Math.sin(Date.now() * 0.001) * 0.2;
@@ -3724,6 +3861,7 @@ document.getElementById('start-btn').addEventListener('click', function startBtn
       }
       initAudio();
       playBgMusic();
+      renderer.domElement.style.display = 'block';
       state.running = true;
       requestAnimationFrame(() => requestAnimationFrame(() => {
         document.getElementById('start-screen').classList.add('hidden');
@@ -3764,6 +3902,7 @@ document.getElementById('start-btn').addEventListener('click', function startBtn
       setTimeout(() => {
         initWorld();
         playBgMusic();
+        renderer.domElement.style.display = 'block';
         state.running = true;
         requestAnimationFrame(() => requestAnimationFrame(() => {
           document.getElementById('game-over-screen').classList.add('hidden');
