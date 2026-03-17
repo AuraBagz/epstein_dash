@@ -579,7 +579,7 @@ canvas { display: block; }
 </div>
 
 <div id="win-screen" class="hidden">
-  <video id="win-video" playsinline></video>
+  <video id="win-video" playsinline preload="auto" src="wow2.mp4"></video>
   <div id="win-overlay">
     <div id="win-stats"></div>
     <a href="https://www.thedorbrothers.com" target="_blank" rel="noopener" class="win-btn">www.THEDORBROTHERS.com</a>
@@ -637,7 +637,8 @@ const assetPreloader = (() => {
     'combo40.mp3',
   ];
 
-  const totalAssets = imageUrls.length + audioUrls.length + 1; // +1 for Three.js scene init
+  const videoUrls = ['wow2.mp4'];
+  const totalAssets = imageUrls.length + audioUrls.length + videoUrls.length + 1; // +1 for Three.js scene init
   let loadedCount = 0;
 
   const progressEl = document.getElementById('loading-progress');
@@ -683,10 +684,24 @@ const assetPreloader = (() => {
     });
   }
 
+  function loadVideo(url) {
+    return new Promise(resolve => {
+      const vid = document.createElement('video');
+      vid.preload = 'auto';
+      const done = () => { updateProgress(); resolve(); };
+      vid.addEventListener('canplaythrough', done, { once: true });
+      vid.addEventListener('error', done, { once: true });
+      setTimeout(done, 15000); // longer timeout for video
+      vid.src = url;
+      vid.load();
+    });
+  }
+
   // Start loading everything
   const allPromises = [
     ...imageUrls.map(u => loadImage(u)),
     ...audioUrls.map(u => loadAudio(u)),
+    ...videoUrls.map(u => loadVideo(u)),
   ];
 
   // Mark Three.js scene as loaded once the game calls it
@@ -2990,8 +3005,8 @@ function gameWin() {
   overlay.style.display = 'none';
   winScreen.classList.remove('hidden');
 
-  // Play video
-  video.src = 'wow2.mp4';
+  // Play video (already preloaded with src set)
+  video.currentTime = 0;
   video.muted = false;
   video.play().catch(() => { video.muted = true; video.play().catch(() => {}); });
 
@@ -3015,7 +3030,7 @@ document.getElementById('win-run-again').addEventListener('click', () => {
   const winScreen = document.getElementById('win-screen');
   const video = document.getElementById('win-video');
   video.pause();
-  video.src = '';
+  video.currentTime = 0;
   winScreen.classList.add('hidden');
   renderer.domElement.style.display = 'block';
   initWorld();
