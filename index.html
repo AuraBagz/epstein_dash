@@ -105,6 +105,16 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
   animation: spin 1.1s linear infinite reverse;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+#loading-percent {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, 60px);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(14px, 3vw, 20px);
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.15em;
+  transition: opacity 0.3s ease;
+}
 #loading-enter-btn {
   visibility: hidden; /* takes up space but invisible until pop-in */
   opacity: 0;
@@ -683,6 +693,7 @@ canvas { display: block; }
 
 <div id="loading-screen">
   <div id="loading-spinner"></div>
+  <div id="loading-percent">0%</div>
   <img id="loading-logo" src="assets/images/dor_bros_logo.png" alt="The Dor Brothers">
   <div id="loading-title">EPSTEIN DASH</div>
   <button id="loading-enter-btn">Click To Play</button>
@@ -825,6 +836,7 @@ const assetPreloader = (() => {
   let loadedCount = 0;
 
   const spinnerEl = document.getElementById('loading-spinner');
+  const percentEl = document.getElementById('loading-percent');
   const logoEl = document.getElementById('loading-logo');
   const titleEl = document.getElementById('loading-title');
   const enterBtn = document.getElementById('loading-enter-btn');
@@ -834,6 +846,8 @@ const assetPreloader = (() => {
 
   function updateProgress(label) {
     loadedCount++;
+    const pct = Math.min(Math.round((loadedCount / totalAssets) * 100), 100);
+    if (percentEl) percentEl.textContent = pct + '%';
     if (loadedCount >= totalAssets && !introPlayed) {
       introPlayed = true;
       onAllLoaded();
@@ -841,9 +855,10 @@ const assetPreloader = (() => {
   }
 
   function onAllLoaded() {
-    // Fade out spinner, then switch layout for intro sequence
+    // Fade out spinner and percent, then switch layout for intro sequence
     spinnerEl.style.transition = 'opacity 0.3s ease';
     spinnerEl.style.opacity = '0';
+    if (percentEl) { percentEl.style.transition = 'opacity 0.3s ease'; percentEl.style.opacity = '0'; }
     setTimeout(() => { loadingScreen.classList.add('intro-ready'); }, 300);
     setTimeout(() => { spinnerEl.style.display = 'none'; }, 300);
 
