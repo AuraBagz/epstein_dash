@@ -3381,7 +3381,7 @@ function gameOver() {
 // ─────────────────────────────────────────────
 // WIN CONDITION
 // ─────────────────────────────────────────────
-const WIN_SCORE = 1; // TEMP: testing win screen
+const WIN_SCORE = 150;
 
 function gameWin() {
   state.running = false;
@@ -3482,7 +3482,7 @@ function shareToX() {
   const score = state.score;
   const highScore = parseInt(localStorage.getItem('epsteinDashHighScore') || '0', 10);
 
-  const tweetText = `I just collected ${score} Epstein Files on @thedorbrothers Epstein Dash game!\n\nMy high score: ${highScore}\n\nPlay it here: https://j-files.com\n\n#thedorbrothers`;
+  const tweetText = `I just collected ${score} Epstein Files on @thedorbrothers Epstein Dash game!\n\nMy high score: ${highScore}\n\nPlay it here: https://www.j-files.com\n\n#thedorbrothers`;
 
   const intentUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweetText);
   window.open(intentUrl, '_blank', 'noopener,noreferrer');
