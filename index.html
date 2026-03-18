@@ -61,8 +61,9 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
   transition: opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 #loading-title {
-  font-size: clamp(32px, 7vw, 64px); font-weight: 900;
+  font-size: clamp(16px, 7vw, 64px); font-weight: 900;
   letter-spacing: 0.2em; text-transform: uppercase;
+  white-space: nowrap;
   background: linear-gradient(90deg, #ffd700, #ffcc00, #fff8dc, #ffcc00, #ffd700);
   background-size: 200% 100%;
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -4304,6 +4305,11 @@ document.getElementById('start-btn').addEventListener('click', function startBtn
     src.stop(t + 0.04);
   } catch(e) {}
 
+  // Start music directly in the click handler so mobile browsers allow it
+  // (autoplay is only permitted within a user gesture context)
+  bgMusic.currentTime = 0;
+  bgMusic.play().catch(() => {});
+
   // Compress animation
   btn.classList.add('btn-pressed');
   setTimeout(() => {
@@ -4330,7 +4336,7 @@ document.getElementById('start-btn').addEventListener('click', function startBtn
         }
       }
       initAudio();
-      playBgMusic();
+      // bgMusic already started in the click handler above for mobile compatibility
       renderer.domElement.style.display = 'block';
       state.running = true;
       requestAnimationFrame(() => requestAnimationFrame(() => {
