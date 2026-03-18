@@ -3574,9 +3574,11 @@ function update() {
       title.style.fontSize = Math.min(maxFs, 90) + 'px';
     }
     if (btn) {
-      btn.style.fontSize = Math.min(w * 0.035, h * 0.06, 64) + 'px';
-      // Position START vertically centered in the ornate frame button area
-      btn.style.bottom = (h * 0.062) + 'px';
+      const fs = Math.min(w * 0.035, h * 0.06, 64);
+      btn.style.fontSize = fs + 'px';
+      // Pin the text CENTER at a fixed % from the bottom of the overlay
+      // so it stays locked inside the ornate button outline at every size
+      btn.style.bottom = (h * 0.088 - fs / 2) + 'px';
     }
     if (hint) hint.style.fontSize = Math.min(w * 0.016, 18) + 'px';
   }
