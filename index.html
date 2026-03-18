@@ -586,18 +586,12 @@ canvas { display: block; }
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
 }
-#win-video {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  position: absolute; inset: 0;
-  z-index: 1;
-}
 #win-overlay {
   position: relative; z-index: 2;
-  display: none; /* shown after video ends */
+  display: flex;
   flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 14px;
+  gap: clamp(16px, 3vh, 30px);
   padding: 20px;
   background: radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
   width: 100%; height: 100%;
@@ -627,6 +621,22 @@ canvas { display: block; }
 #win-overlay .win-btn:hover, #win-overlay .win-btn:active {
   transform: scale(1.05);
   box-shadow: 0 4px 16px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+#win-click-link {
+  display: block;
+  width: min(90vw, 600px);
+  aspect-ratio: 5 / 1;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  animation: urlShakeNotify 4s ease-in-out infinite;
+}
+#win-click-link:hover { transform: scale(1.08); animation: none; filter: brightness(1.3) drop-shadow(0 0 18px rgba(255,215,0,0.6)); }
+#win-click-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 28%;
+  pointer-events: none;
 }
 /* Win title */
 #win-title {
@@ -756,7 +766,6 @@ canvas { display: block; }
 </div>
 
 <div id="win-screen" class="hidden">
-  <video id="win-video" playsinline preload="auto" src="assets/video/wow2.mp4"></video>
   <div id="win-overlay">
     <div id="win-title">YOU WIN!</div>
     <div id="win-stats-card">
@@ -774,6 +783,9 @@ canvas { display: block; }
       </div>
       <button class="share-btn" id="share-win">Share Your Score</button>
     </div>
+    <a href="https://www.thedorbrothers.com/youre-bored" target="_blank" rel="noopener" id="win-click-link">
+      <img src="assets/images/busted_screens/4.png" alt="Click Here" id="win-click-img">
+    </a>
     <button id="win-run-again" class="win-btn">Run Again</button>
   </div>
 </div>
@@ -831,7 +843,7 @@ const assetPreloader = (() => {
     'assets/audio/piano.mp3',
   ];
 
-  const videoUrls = ['assets/video/wow2.mp4'];
+  const videoUrls = [];
   const totalAssets = imageUrls.length + audioUrls.length + videoUrls.length + 1; // +1 for Three.js scene init
   let loadedCount = 0;
 
@@ -3332,44 +3344,17 @@ function gameWin() {
     localStorage.setItem('epsteinDashHighScore', highScore);
   }
 
-  // Show win screen with video
+  // Show win screen immediately
   const winScreen = document.getElementById('win-screen');
-  const video = document.getElementById('win-video');
-  const overlay = document.getElementById('win-overlay');
-
   document.getElementById('win-score').textContent = state.score;
   document.getElementById('win-distance').textContent = Math.floor(state.distance) + 'm';
   document.getElementById('win-highscore').textContent = highScore;
-  overlay.style.display = 'none';
   winScreen.classList.remove('hidden');
-
-  // Play video (already preloaded with src set)
-  video.currentTime = 0;
-  video.muted = false;
-  video.play().catch(() => { video.muted = true; video.play().catch(() => {}); });
-
-  // Show buttons when video ends (or on click to skip)
-  const showOverlay = () => {
-    overlay.style.display = 'flex';
-  };
-  video.addEventListener('ended', showOverlay, { once: true });
-  video.addEventListener('click', () => {
-    video.pause();
-    showOverlay();
-  }, { once: true });
-  video.addEventListener('touchend', () => {
-    video.pause();
-    showOverlay();
-  }, { once: true });
 }
 
 // Win screen — Run Again button
 document.getElementById('win-run-again').addEventListener('click', () => {
-  const winScreen = document.getElementById('win-screen');
-  const video = document.getElementById('win-video');
-  video.pause();
-  video.currentTime = 0;
-  winScreen.classList.add('hidden');
+  document.getElementById('win-screen').classList.add('hidden');
   renderer.domElement.style.display = 'block';
   initWorld();
   playBgMusic();
