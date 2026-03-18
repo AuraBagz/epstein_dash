@@ -245,7 +245,7 @@ canvas { display: block; }
 /* START button — positioned inside the ornate frame button area */
 #start-btn {
   position: absolute !important;
-  bottom: 12%;
+  bottom: calc(12% - 20px);
   left: 50%;
   transform: translateX(-50%) scale(1);
   z-index: 5;
@@ -543,8 +543,10 @@ canvas { display: block; }
   display: none; /* shown after video ends */
   flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 20px;
+  gap: 14px;
   padding: 20px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  width: 100%; height: 100%;
 }
 #win-overlay .win-btn {
   font-family: 'Georgia', 'Times New Roman', serif;
@@ -572,14 +574,65 @@ canvas { display: block; }
   transform: scale(1.05);
   box-shadow: 0 4px 16px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
 }
-#win-stats {
-  color: #fff; text-align: center;
+/* Win title */
+#win-title {
   font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: clamp(14px, 3vw, 22px);
-  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  font-size: clamp(28px, 6vw, 56px);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255,215,0,0.6), 0 0 40px rgba(255,215,0,0.3), 0 4px 12px rgba(0,0,0,0.8);
   margin-bottom: 10px;
+  animation: bustedPulse 2.5s ease-in-out infinite;
 }
-#win-stats span { color: #ffd700; font-weight: 900; }
+/* Win stats card — matches busted screen card */
+#win-stats-card {
+  display: flex; flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 0;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #c9a84c;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: statsGlow 3s ease-in-out infinite;
+  padding: 0;
+  min-width: 260px;
+  max-width: 400px;
+}
+#win-stats-card .stat-row {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  letter-spacing: 0.05em;
+  padding: 10px 18px;
+  flex: 1 1 0;
+  border-right: 1px solid rgba(255, 215, 0, 0.15);
+}
+#win-stats-card .stat-row:last-of-type { border-right: none; }
+#win-stats-card .stat-label {
+  color: #fff; font-weight: 400; font-size: clamp(9px, 1.5vw, 13px);
+  text-transform: uppercase; white-space: nowrap; line-height: 1; margin-bottom: 2px;
+}
+#win-stats-card .stat-value {
+  color: #ffd700; font-weight: 900; font-size: clamp(18px, 3vw, 28px);
+  white-space: nowrap; line-height: 1.1;
+}
+#win-stats-card .stat-row.highscore .stat-value { color: #ff4444; }
+#win-stats-card .share-btn {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: clamp(9px, 1.5vw, 13px);
+  letter-spacing: 0.12em;
+  pointer-events: auto;
+}
 </style>
 </head>
 <body>
@@ -652,9 +705,22 @@ canvas { display: block; }
 <div id="win-screen" class="hidden">
   <video id="win-video" playsinline preload="auto" src="assets/video/wow2.mp4"></video>
   <div id="win-overlay">
-    <div id="win-stats"></div>
-    <button class="share-btn" id="share-win">Share Your Score</button>
-    <a href="https://www.thedorbrothers.com" target="_blank" rel="noopener" class="win-btn">www.THEDORBROTHERS.com</a>
+    <div id="win-title">YOU WIN!</div>
+    <div id="win-stats-card">
+      <div class="stat-row">
+        <span class="stat-label">Files</span>
+        <span class="stat-value" id="win-score">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Distance</span>
+        <span class="stat-value" id="win-distance">0m</span>
+      </div>
+      <div class="stat-row highscore">
+        <span class="stat-label">Best</span>
+        <span class="stat-value" id="win-highscore">0</span>
+      </div>
+      <button class="share-btn" id="share-win">Share Your Score</button>
+    </div>
     <button id="win-run-again" class="win-btn">Run Again</button>
   </div>
 </div>
@@ -3072,9 +3138,10 @@ function gameWin() {
   const winScreen = document.getElementById('win-screen');
   const video = document.getElementById('win-video');
   const overlay = document.getElementById('win-overlay');
-  const stats = document.getElementById('win-stats');
 
-  stats.innerHTML = 'Files: <span>' + state.score + '</span> &bull; Distance: <span>' + Math.floor(state.distance) + 'm</span> &bull; Best: <span>' + highScore + '</span>';
+  document.getElementById('win-score').textContent = state.score;
+  document.getElementById('win-distance').textContent = Math.floor(state.distance) + 'm';
+  document.getElementById('win-highscore').textContent = highScore;
   overlay.style.display = 'none';
   winScreen.classList.remove('hidden');
 
@@ -3320,15 +3387,15 @@ function update() {
       // "EPSTEIN DASH" = 12 chars + 11 gaps of letter-spacing (0.3em)
       // Approximate rendered width ≈ fontSize * (12 * 0.6 + 11 * 0.3) = fontSize * 10.5
       // Fit within 80% of overlay width
-      const maxFs = (w * 0.80) / 10.5;
-      title.style.fontSize = Math.max(18, Math.min(w * 0.06, maxFs, 80)) + 'px';
+      const maxFs = (w * 0.60) / 10.5;
+      title.style.fontSize = Math.min(maxFs, 90) + 'px';
     }
     if (btn) {
-      btn.style.fontSize = Math.max(14, w * 0.035) + 'px';
+      btn.style.fontSize = Math.min(w * 0.03, 48) + 'px';
       // Position START vertically centered in the ornate frame button area
-      btn.style.bottom = (h * 0.06) + 'px';
+      btn.style.bottom = (h * 0.062) + 'px';
     }
-    if (hint) hint.style.fontSize = Math.max(8, w * 0.014) + 'px';
+    if (hint) hint.style.fontSize = Math.min(w * 0.016, 18) + 'px';
   }
   if (img.complete) fitOverlay();
   img.addEventListener('load', fitOverlay);
