@@ -859,7 +859,7 @@ const assetPreloader = (() => {
     setTimeout(() => {
       titleEl.classList.add('slam-in');
       const piano = new Audio('assets/audio/piano.mp3');
-      piano.volume = 0.5;
+      piano.volume = 0.25;
       piano.play().catch(() => {});
       // Add shake effect after the slam lands
       setTimeout(() => {
@@ -2519,8 +2519,9 @@ function createObstacle(lane, z) {
 }
 
 // Island-specific obstacles
-function createIslandObstacle(lane, z) {
-  const type = Math.floor(Math.random() * 3);
+function createIslandObstacle(lane, z, forceType) {
+  // type 3 = crime scene tape, only spawned via forceType from spawnObstacles
+  const type = forceType !== undefined ? forceType : Math.floor(Math.random() * 3);
   let mesh;
 
   if (type === 0) {
@@ -2604,7 +2605,7 @@ function createIslandObstacle(lane, z) {
     mesh = logGroup;
     mesh.userData.height = 0.8;
 
-  } else {
+  } else if (type === 2) {
     // Rock pile (smaller)
     const pileGroup = new THREE.Group();
     const rockColors = [0x888888, 0x666666, 0x999988, 0x776655];
@@ -2624,9 +2625,87 @@ function createIslandObstacle(lane, z) {
     }
     mesh = pileGroup;
     mesh.userData.height = 0.5;
+
+  } else {
+    // Crime scene tape stretched across the road
+    const tapeGroup = new THREE.Group();
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.4, metalness: 0.7 });
+
+    // Two metal poles on either side of the road
+    const poleRadius = 0.08;
+    const poleHeight = 1.8;
+    for (let side of [-1, 1]) {
+      const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(poleRadius, poleRadius, poleHeight, 8),
+        poleMat
+      );
+      pole.position.set(side * (ROAD_WIDTH / 2 - 1), poleHeight / 2, 0);
+      pole.castShadow = true;
+      tapeGroup.add(pole);
+
+      // Pole base
+      const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.25, 0.3, 0.1, 8),
+        poleMat
+      );
+      base.position.set(side * (ROAD_WIDTH / 2 - 1), 0.05, 0);
+      tapeGroup.add(base);
+
+      // Pole top cap
+      const cap = new THREE.Mesh(
+        new THREE.SphereGeometry(0.1, 8, 6),
+        poleMat
+      );
+      cap.position.set(side * (ROAD_WIDTH / 2 - 1), poleHeight, 0);
+      tapeGroup.add(cap);
+    }
+
+    // Yellow tape — canvas texture with bold black "CRIME SCENE" text
+    const tapeCanvas = document.createElement('canvas');
+    tapeCanvas.width = 2048;
+    tapeCanvas.height = 128;
+    const tctx = tapeCanvas.getContext('2d');
+    tctx.fillStyle = '#FFD700';
+    tctx.fillRect(0, 0, tapeCanvas.width, tapeCanvas.height);
+    // Bold black text repeating
+    tctx.fillStyle = '#000000';
+    tctx.font = '900 72px Arial, sans-serif';
+    tctx.textBaseline = 'middle';
+    const tapeText = 'CRIME SCENE   DO NOT CROSS   ';
+    const tw = tctx.measureText(tapeText).width;
+    for (let x = 0; x < tapeCanvas.width + tw; x += tw) {
+      tctx.fillText(tapeText, x, tapeCanvas.height / 2);
+    }
+    // Thick black border lines top and bottom
+    tctx.fillStyle = '#000000';
+    tctx.fillRect(0, 0, tapeCanvas.width, 10);
+    tctx.fillRect(0, tapeCanvas.height - 10, tapeCanvas.width, 10);
+
+    const tapeTex = new THREE.CanvasTexture(tapeCanvas);
+    tapeTex.wrapS = THREE.RepeatWrapping;
+    tapeTex.repeat.set(3, 1);
+    const tapeMat = new THREE.MeshBasicMaterial({
+      map: tapeTex,
+      side: THREE.DoubleSide,
+    });
+
+    // Single thick tape strip at waist height, pole-to-pole width
+    const poleSpan = (ROAD_WIDTH / 2 - 1) * 2; // distance between poles
+    const tape = new THREE.Mesh(
+      new THREE.PlaneGeometry(poleSpan, 0.4),
+      tapeMat
+    );
+    tape.position.set(0, 1.0, 0);
+    tapeGroup.add(tape);
+
+    mesh = tapeGroup;
+    mesh.userData.height = 1.3;
+    mesh.userData.isCrimeSceneTape = true; // flag for wide collision
   }
 
-  mesh.position.set(LANES[lane], 0, z);
+  // Crime scene tape always centered on road, other obstacles use lane
+  const xPos = mesh.userData.isCrimeSceneTape ? 0 : LANES[lane];
+  mesh.position.set(xPos, 0, z);
   mesh.userData.lane = lane;
   mesh.userData.isObstacle = true;
   mesh.userData.bbox = new THREE.Box3();
@@ -2878,6 +2957,7 @@ function initWorld() {
     boostTimer: 0,
   };
   nextObstacleZ = -30;
+  lastTapeZ = Infinity;
   nextDocumentZ = -15;
   combo = 0;
   comboTimer = 0;
@@ -2892,9 +2972,23 @@ function initWorld() {
 // ─────────────────────────────────────────────
 // SPAWNING
 // ─────────────────────────────────────────────
+const MIN_TAPE_GAP = 120; // minimum Z distance between crime scene tape spawns
+let lastTapeZ = Infinity;
+
 function spawnObstacles(playerZ) {
   while (nextObstacleZ > playerZ - 200) {
-    // Pick 1-2 lanes to block
+    // ~8% chance of crime scene tape — spawns alone across all 3 lanes
+    // Enforce minimum gap so two tapes don't spawn close together
+    if (Math.random() < 0.08 && (lastTapeZ - nextObstacleZ) >= MIN_TAPE_GAP) {
+      const tape = createIslandObstacle(1, nextObstacleZ, 3);
+      scene.add(tape);
+      obstacles.push(tape);
+      lastTapeZ = nextObstacleZ;
+      nextObstacleZ -= OBSTACLE_SPACING + Math.random() * 15;
+      continue;
+    }
+
+    // Normal obstacle spawning — pick 1-2 lanes to block (no crime scene tape)
     const blockedLanes = new Set();
     blockedLanes.add(Math.floor(Math.random() * 3));
     if (Math.random() > 0.5) {
@@ -2904,7 +2998,6 @@ function spawnObstacles(playerZ) {
     }
 
     for (const lane of blockedLanes) {
-      // Mix island obstacles with cars
       const obs = (Math.random() > 0.4)
         ? createIslandObstacle(lane, nextObstacleZ)
         : createObstacle(lane, nextObstacleZ);
@@ -3017,7 +3110,8 @@ function checkCollisions() {
   for (const obs of obstacles) {
     const oz = obs.position.z;
     const ox = obs.position.x;
-    if (Math.abs(pz - oz) < 1.8 && Math.abs(px - ox) < 1.5 && py < (obs.userData.height || 1.5)) {
+    const xThreshold = obs.userData.isCrimeSceneTape ? ROAD_WIDTH / 2 : 1.5;
+    if (Math.abs(pz - oz) < 1.8 && Math.abs(px - ox) < xThreshold && py < (obs.userData.height || 1.5)) {
       return true; // collision
     }
   }
@@ -3480,7 +3574,7 @@ function update() {
       title.style.fontSize = Math.min(maxFs, 90) + 'px';
     }
     if (btn) {
-      btn.style.fontSize = Math.min(w * 0.03, 48) + 'px';
+      btn.style.fontSize = Math.min(w * 0.035, h * 0.06, 64) + 'px';
       // Position START vertically centered in the ornate frame button area
       btn.style.bottom = (h * 0.062) + 'px';
     }
