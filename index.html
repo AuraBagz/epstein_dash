@@ -661,50 +661,49 @@ canvas { display: block; }
   z-index: 5;
   pointer-events: auto;
   display: flex; flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: stretch;
   gap: 0;
   background: rgba(0, 0, 0, 0.85);
-  border: 2px solid #c9a84c;
-  border-radius: 6px;
+  border: 1px solid #c9a84c;
+  border-radius: 4px;
   overflow: hidden;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: statsGlow 3s ease-in-out infinite;
   padding: 0;
-  width: 30%;
-  min-width: 180px;
-  max-width: 400px;
+  /* width, fonts, padding all set by JS fitWinOverlay */
 }
 #win-stats-card .stat-row {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   font-family: 'Georgia', 'Times New Roman', serif;
   letter-spacing: 0.05em;
-  padding: 10px 18px;
   flex: 1 1 0;
   border-right: 1px solid rgba(255, 215, 0, 0.15);
+  /* padding set by JS */
 }
 #win-stats-card .stat-row:last-of-type { border-right: none; }
 #win-stats-card .stat-label {
-  color: #fff; font-weight: 400; font-size: clamp(9px, 1.5vw, 13px);
-  text-transform: uppercase; white-space: nowrap; line-height: 1; margin-bottom: 2px;
+  color: #fff; font-weight: 400;
+  text-transform: uppercase; white-space: nowrap; line-height: 1; margin-bottom: 1px;
+  /* font-size set by JS */
 }
 #win-stats-card .stat-value {
-  color: #ffd700; font-weight: 900; font-size: clamp(18px, 3vw, 28px);
+  color: #ffd700; font-weight: 900;
   white-space: nowrap; line-height: 1.1;
+  /* font-size set by JS */
 }
 #win-stats-card .stat-row.highscore .stat-value { color: #ff4444; }
 #win-stats-card .share-btn {
   flex-basis: 100%;
   margin: 0;
-  padding: 6px 12px;
   border-radius: 0;
   box-shadow: none;
-  font-size: clamp(9px, 1.5vw, 13px);
   letter-spacing: 0.12em;
   pointer-events: auto;
+  /* font-size, padding set by JS */
 }
 /* Run Again button — inside overlay, at bottom of white frame */
 #win-run-again {
@@ -714,11 +713,12 @@ canvas { display: block; }
   z-index: 5;
   pointer-events: auto;
   font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: clamp(14px, 3vw, 22px); font-weight: 900;
+  font-weight: 900;
   letter-spacing: 0.2em; text-transform: uppercase;
-  padding: 10px 28px; border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer; text-decoration: none;
   display: inline-block; text-align: center;
+  white-space: nowrap;
   transition: all 0.2s;
   color: #1a1200;
   background: linear-gradient(
@@ -726,12 +726,13 @@ canvas { display: block; }
     #fffbe6 0%, #ffd700 15%, #c9a84c 40%,
     #7a5e1e 55%, #c9a84c 70%, #ffd700 85%, #fffbe6 100%
   );
-  border: 2px solid #ffd700;
+  border: 1px solid #ffd700;
   box-shadow:
     0 2px 8px rgba(255,215,0,0.4),
     inset 0 1px 0 rgba(255,255,255,0.4),
     inset 0 -1px 0 rgba(0,0,0,0.2);
   animation: statsGlow 3s ease-in-out infinite;
+  /* font-size, padding set by JS */
 }
 #win-run-again:hover, #win-run-again:active {
   transform: translateX(-50%) scale(1.05);
