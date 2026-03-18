@@ -7,6 +7,21 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#000000">
+
+<!-- Open Graph (Facebook, LinkedIn, Discord, etc.) -->
+<meta property="og:title" content="Epstein Dash">
+<meta property="og:description" content="Collect the Epstein Files before you get BUSTED! A game by The Dor Brothers.">
+<meta property="og:image" content="https://j-files.com/assets/images/x-share.png">
+<meta property="og:url" content="https://j-files.com">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Epstein Dash">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Epstein Dash">
+<meta name="twitter:description" content="Collect the Epstein Files before you get BUSTED! A game by The Dor Brothers.">
+<meta name="twitter:image" content="https://j-files.com/assets/images/x-share.png">
+
 <title>Epstein Dash</title>
 <link rel="icon" type="image/png" href="assets/images/favcon.png">
 <link rel="apple-touch-icon" href="assets/images/favcon.png">
@@ -122,6 +137,36 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
   0% { left: -100%; }
   60% { left: 150%; }
   100% { left: 150%; }
+}
+.share-btn {
+  position: relative; overflow: hidden;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(12px, 2.5vw, 18px); font-weight: 900;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: #3a2800;
+  text-shadow: 0 1px 0 rgba(255,235,150,0.6);
+  background: linear-gradient(180deg, #fff6a0 0%, #ffd700 15%, #e6ac00 30%, #ffd700 45%, #ffec80 50%, #ffd700 55%, #cc8800 70%, #b37700 85%, #e6ac00 100%);
+  border: none; border-radius: 6px;
+  padding: 10px 24px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #8a5e00, 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.15);
+  transition: transform 0.1s, box-shadow 0.1s;
+  text-decoration: none;
+  z-index: 20;
+  margin-top: 8px;
+}
+.share-btn::before {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.0) 40%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.0) 60%, transparent 70%);
+  animation: goldShine 3s ease-in-out infinite;
+}
+.share-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 2px 0 #8a5e00, 0 6px 16px rgba(255,215,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.15);
+}
+.share-btn:active {
+  transform: scale(0.98) translateY(2px);
 }
 body { background: #000; font-family: 'Segoe UI', Arial, sans-serif;
   -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
@@ -274,15 +319,20 @@ canvas { display: block; }
 #endlayer-5 { z-index: 1; }
 /* Layer 5.5: illustration panel — static */
 #endlayer-5-5 { z-index: 1; }
-/* Layer 4: website URL — slow glow pulse */
+/* Layer 4: website URL — shake notification then pause */
 #endlayer-4 {
   z-index: 2;
-  animation: urlGlowPulse 4s ease-in-out infinite;
-  transition: transform 0.3s ease, filter 0.3s ease;
+  animation: urlShakeNotify 4s ease-in-out infinite;
+  transition: filter 0.3s ease;
 }
-@keyframes urlGlowPulse {
-  0%, 100% { filter: brightness(1) drop-shadow(0 0 0px transparent); }
-  50% { filter: brightness(1.2) drop-shadow(0 0 12px rgba(255,215,0,0.4)); }
+@keyframes urlShakeNotify {
+  0%, 20%, 100% { transform: translateX(0); filter: brightness(1) drop-shadow(0 0 0px transparent); }
+  2% { transform: translateX(-4px) rotate(-1deg); filter: brightness(1.3) drop-shadow(0 0 10px rgba(255,215,0,0.5)); }
+  4% { transform: translateX(4px) rotate(1deg); filter: brightness(1.3) drop-shadow(0 0 10px rgba(255,215,0,0.5)); }
+  6% { transform: translateX(-3px) rotate(-0.5deg); filter: brightness(1.2) drop-shadow(0 0 8px rgba(255,215,0,0.4)); }
+  8% { transform: translateX(3px) rotate(0.5deg); filter: brightness(1.2) drop-shadow(0 0 8px rgba(255,215,0,0.4)); }
+  10% { transform: translateX(-2px); filter: brightness(1.1) drop-shadow(0 0 6px rgba(255,215,0,0.3)); }
+  12% { transform: translateX(0); filter: brightness(1) drop-shadow(0 0 0px transparent); }
 }
 #endlayer-4.hovered {
   animation: none;
@@ -300,9 +350,9 @@ canvas { display: block; }
 }
 #endlayer-2.hovered {
   transform: scale(1.03);
-  filter: brightness(1.25) drop-shadow(0 0 14px rgba(255,215,0,0.5));
+  filter: brightness(1.3) drop-shadow(0 0 14px rgba(255,215,0,0.5));
 }
-/* Invisible hitbox over Run Again area */
+/* Hitbox over Run Again area — also carries the gold streak */
 #endlayer-2-hitbox {
   position: absolute;
   cursor: pointer;
@@ -311,7 +361,15 @@ canvas { display: block; }
   border: none; outline: none;
   z-index: 6;
   font-size: 1px;
+  overflow: hidden;
   color: transparent;
+}
+#endlayer-2-hitbox::before {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.0) 40%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.0) 60%, transparent 70%);
+  animation: goldShine 3s ease-in-out infinite;
+  pointer-events: none;
 }
 /* Layer 1: BUSTED! text — pulse with red glow */
 #endlayer-1 {
@@ -355,18 +413,29 @@ canvas { display: block; }
   z-index: 10;
   pointer-events: none;
   display: flex; flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: stretch;
   gap: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   border: 2px solid transparent;
   border-radius: 6px;
-  overflow: visible;
+  overflow: hidden;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  /* Gold border with animated glow */
   border-color: #c9a84c;
   animation: statsGlow 3s ease-in-out infinite;
-  position: absolute;
+  padding: 0;
+}
+#endscreen-stats .share-btn {
+  pointer-events: auto;
+  flex-basis: 100%;
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: clamp(8px, 1.5vw, 13px);
+  letter-spacing: 0.12em;
 }
 @keyframes statsGlow {
   0%, 100% {
@@ -383,10 +452,11 @@ canvas { display: block; }
   align-items: center; justify-content: center;
   font-family: 'Georgia', 'Times New Roman', serif;
   letter-spacing: 0.05em;
-  padding: 5px 10px;
-  border-right: 1px solid rgba(255, 215, 0, 0.12);
+  padding: 6px 16px;
+  flex: 1 1 0;
+  border-right: 1px solid rgba(255, 215, 0, 0.15);
 }
-#endscreen-stats .stat-row:last-child { border-right: none; }
+#endscreen-stats .stat-row:last-of-type { border-right: none; }
 #endscreen-stats .stat-label {
   color: #fff;
   font-weight: 400;
@@ -575,6 +645,7 @@ canvas { display: block; }
       <span class="stat-label">Best</span>
       <span class="stat-value" id="final-highscore">0</span>
     </div>
+    <button class="share-btn" id="share-busted">Share Your Score</button>
   </div>
 </div>
 
@@ -582,6 +653,7 @@ canvas { display: block; }
   <video id="win-video" playsinline preload="auto" src="assets/video/wow2.mp4"></video>
   <div id="win-overlay">
     <div id="win-stats"></div>
+    <button class="share-btn" id="share-win">Share Your Score</button>
     <a href="https://www.thedorbrothers.com" target="_blank" rel="noopener" class="win-btn">www.THEDORBROTHERS.com</a>
     <button id="win-run-again" class="win-btn">Run Again</button>
   </div>
@@ -620,6 +692,7 @@ const assetPreloader = (() => {
   const imageUrls = [
     'assets/images/dor_bros_logo.png',
     'assets/images/start_screen.png',
+    'assets/images/x-share.png',
     'assets/images/busted_screens/0.png',
     'assets/images/busted_screens/1.png',
     'assets/images/busted_screens/2.png',
@@ -3039,6 +3112,21 @@ document.getElementById('win-run-again').addEventListener('click', () => {
 });
 
 // ─────────────────────────────────────────────
+// SHARE TO X
+// ─────────────────────────────────────────────
+function shareToX() {
+  const score = state.score;
+  const highScore = parseInt(localStorage.getItem('epsteinDashHighScore') || '0', 10);
+
+  const tweetText = `I just collected ${score} Epstein Files on The Dor Brothers' Epstein Dash game!\n\nMy high score: ${highScore}\n\nPlay it here: https://j-files.com\n\n#thedorbrothers`;
+
+  const intentUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweetText);
+  window.open(intentUrl, '_blank', 'noopener,noreferrer');
+}
+document.getElementById('share-busted').addEventListener('click', shareToX);
+document.getElementById('share-win').addEventListener('click', shareToX);
+
+// ─────────────────────────────────────────────
 // GAME LOOP
 // ─────────────────────────────────────────────
 const clock = new THREE.Clock();
@@ -3980,25 +4068,29 @@ function updateEndscreenOverlay() {
   // Website link — positioned as % of overlay (middle area)
   const link = document.getElementById('endscreen-website-link');
   if (link) {
-    link.style.left = '15%';
-    link.style.top = '30%';
-    link.style.width = '70%';
-    link.style.height = '10%';
+    link.style.left = '33%';
+    link.style.top = '33%';
+    link.style.width = '34%';
+    link.style.height = '9%';
   }
 
-  // Stats panel — horizontal bar centered below URL, above illustration
+  // Stats panel — centered on white frame area of busted image
   const stats = document.getElementById('endscreen-stats');
   if (stats) {
-    // Scale purely as % of rendered image — no min/max so it stays proportional
-    const fontSize = rw * 0.014;
-    const valueSize = rw * 0.022;
-    const padding = rw * 0.008;
-    const borderW = Math.max(1, rw * 0.002);
-    const borderR = Math.max(2, rw * 0.005);
+    // Use the smaller dimension to keep panel proportional and prevent blowup
+    const ref = Math.min(rw, rh);
+    const fontSize = Math.min(ref * 0.022, 14);
+    const valueSize = Math.min(ref * 0.035, 24);
+    const shareSize = Math.min(ref * 0.018, 12);
+    const padding = Math.min(ref * 0.01, 6);
+    const sharePad = Math.min(ref * 0.008, 5);
+    const borderW = Math.max(1, Math.min(ref * 0.003, 3));
+    const borderR = Math.max(2, Math.min(ref * 0.006, 6));
     stats.style.fontSize = fontSize + 'px';
     stats.style.left = ox + rw * 0.50 + 'px';
-    stats.style.top = oy + rh * 0.46 + 'px';
-    stats.style.transform = 'translateX(-50%)';
+    stats.style.top = oy + rh * 0.65 + 'px';
+    stats.style.transform = 'translate(-50%, -50%)';
+    stats.style.maxWidth = (rw * 0.42) + 'px';
     stats.style.borderWidth = borderW + 'px';
     stats.style.borderRadius = borderR + 'px';
     stats.querySelectorAll('.stat-value').forEach(v => v.style.fontSize = valueSize + 'px');
@@ -4006,7 +4098,12 @@ function updateEndscreenOverlay() {
       r.style.padding = padding + 'px ' + (padding * 1.5) + 'px';
       r.style.borderRightWidth = borderW + 'px';
     });
-    // Scale the ::before pseudo-element inset via CSS variable
+    // Scale the share button with the panel — override CSS clamp
+    const shareBtn = stats.querySelector('.share-btn');
+    if (shareBtn) {
+      shareBtn.style.fontSize = shareSize + 'px';
+      shareBtn.style.padding = sharePad + 'px ' + (sharePad * 2.5) + 'px';
+    }
     stats.style.setProperty('--stats-border-w', borderW + 'px');
     stats.style.setProperty('--stats-border-r', borderR + 'px');
   }
